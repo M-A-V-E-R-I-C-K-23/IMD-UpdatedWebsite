@@ -2,6 +2,14 @@ import os
 
 # Base Config
 SECRET_KEY = os.environ.get('SECRET_KEY') or 'dev-secret-key-change-in-prod'
+
+# Session Config
+PERMANENT_SESSION_LIFETIME = timedelta(days=7)  # Persistent login for 7 days
+SESSION_COOKIE_HTTPONLY = True
+SESSION_COOKIE_SAMESITE = 'Lax'
+SESSION_REFRESH_EACH_REQUEST = False  # Prevent session expiry from extending on every request
+SESSION_COOKIE_SECURE = os.environ.get('FLASK_ENV') == 'production' or os.environ.get('IS_AGRO_PRODUCTION') == 'true'
+
 UPLOAD_FOLDER = os.path.join(os.getcwd(), 'uploads')
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif', 'pdf'}
 MAX_CONTENT_LENGTH = 16 * 1024 * 1024  # 16MB max upload

@@ -112,6 +112,13 @@ def login():
     
     if username == 'mwo_admin':
         if password == 'Admin@123':
+            # 1. Prevent Session Fixation
+            session.clear()
+            
+            # 2. Enable Persistent Session
+            session.permanent = True
+            
+            # 3. Store Minimal User Info
             session['user'] = 'mwo_admin'
             session['role'] = 'admin'
             success = True
@@ -119,6 +126,10 @@ def login():
             error = "Invalid username or password"
     elif username:
         # Dev mode allows any other username without password
+        # For non-admin dev users, we might not want permanent sessions, 
+        # or we can treat them same for consistency in dev.
+        # Assuming dev users are transient, but let's keep it simple.
+        session.clear()
         session['user'] = username
         session['role'] = 'user'
         success = True
@@ -252,7 +263,7 @@ def delete_news(item_id):
 
 @map_bp.route('/api/notices/post', methods=['POST'])
 def post_notice():
-    if not session.get('user'):
+    if session.get('role') != 'admin':
         return jsonify({'status': 'error', 'message': 'Unauthorized'}), 403
         
     try:
