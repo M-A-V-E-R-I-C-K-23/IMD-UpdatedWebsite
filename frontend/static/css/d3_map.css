@@ -1,0 +1,164 @@
+/**
+ * D3 Map Scoped CSS
+ * Extracted from map_bc/style.css and scoped to .d3-map-scoped container
+ * This prevents CSS conflicts with existing IMD dashboard styles
+ */
+
+/* Map Container */
+.d3-map-scoped {
+    background: #020617;
+    /* Map ocean color */
+    position: relative;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+}
+
+.d3-map-scoped #d3-map-svg {
+    width: 100%;
+    height: 100%;
+    display: block;
+}
+
+/* Map Controls */
+.d3-map-scoped #map-controls {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    display: flex;
+    gap: 0.5rem;
+    z-index: 10;
+}
+
+.d3-map-scoped .map-btn {
+    background: rgba(30, 41, 59, 0.9);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: #f1f5f9;
+    padding: 0.5rem 0.8rem;
+    font-size: 0.75rem;
+    font-weight: 700;
+    border-radius: 4px;
+    cursor: pointer;
+    backdrop-filter: blur(4px);
+    transition: all 0.2s ease;
+}
+
+.d3-map-scoped #zoom-in,
+.d3-map-scoped #zoom-out {
+    width: 32px;
+    height: 32px;
+    font-size: 1.1rem;
+    padding: 0;
+}
+
+.d3-map-scoped .map-btn:hover {
+    background: #38bdf8;
+    color: #0f172a;
+    border-color: #38bdf8;
+    box-shadow: 0 0 15px rgba(56, 189, 248, 0.3);
+}
+
+.d3-map-scoped .map-btn:active {
+    transform: scale(0.95);
+}
+
+/* Scale Bar */
+.d3-map-scoped #scale-bar-container {
+    position: absolute;
+    bottom: 20px;
+    right: 20px;
+    background: rgba(15, 23, 42, 0.85);
+    padding: 0.5rem 1rem;
+    border-radius: 6px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.d3-map-scoped #scale-bar-line {
+    height: 3px;
+    background: white;
+    border-left: 2px solid white;
+    border-right: 2px solid white;
+    margin-bottom: 4px;
+}
+
+.d3-map-scoped #scale-bar-text {
+    font-size: 0.7rem;
+    color: #94a3b8;
+    font-family: 'JetBrains Mono', monospace;
+}
+
+/* SVG Map Elements */
+.d3-map-scoped .state-color {
+    fill: #1e293b;
+    /* Muted state color */
+    stroke: rgba(255, 255, 255, 0.05);
+    stroke-width: 0.5px;
+    transition: fill 0.3s ease;
+}
+
+.d3-map-scoped .state-color.muted {
+    fill: #1e293b;
+}
+
+.d3-map-scoped .state-color.highlighted {
+    fill: #0f766e;
+    /* Teal highlight */
+}
+
+.d3-map-scoped .state-map-label {
+    fill: #94a3b8;
+    opacity: 0.5;
+    font-size: 8px;
+    pointer-events: none;
+}
+
+.d3-map-scoped .state-map-label.muted {
+    fill: #94a3b8;
+    opacity: 0.5;
+}
+
+.d3-map-scoped .state-map-label.highlighted {
+    fill: #f1f5f9;
+    opacity: 1;
+}
+
+.d3-map-scoped .graticule {
+    stroke: rgba(255, 255, 255, 0.05);
+    stroke-width: 0.5px;
+    fill: none;
+}
+
+/* FIR Boundaries */
+.d3-map-scoped .fir-boundary {
+    fill: none;
+    stroke-width: 1.5;
+    stroke-dasharray: 5, 5;
+    transition: all 0.3s ease;
+}
+
+.d3-map-scoped .fir-mumbai {
+    fill: none;
+    stroke: #06b6d4;
+    /* Cyan */
+    stroke-width: 3px;
+    filter: drop-shadow(0 0 8px rgba(6, 182, 212, 0.8));
+}
+
+/* Canvas Overlay */
+.d3-map-scoped canvas {
+    position: absolute;
+    top: 0;
+    left: 0;
+    pointer-events: auto;
+    /* Allow click events on canvas */
+    z-index: 5;
+    /* Above SVG but below controls */
+}
+
+/* Performance Optimization: Disable expensive effects during zoom */
+.d3-map-scoped.is-zooming .state-color {
+    transition: none !important;
+}

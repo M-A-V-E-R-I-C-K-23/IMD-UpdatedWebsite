@@ -1,0 +1,23 @@
+
+# CRON JOB SETUP FOR RVR AUTOMATION
+
+To run the RVR fetch script automatically every 30 minutes, add the following entry to your crontab.
+
+1. Open crontab editor:
+   crontab -e
+
+2. Add the following line:
+   */30 * * * * /path/to/venv/bin/python /path/to/project/scripts/fetch_rvr.py >> /path/to/project/logs/cron_rvr.log 2>&1
+
+   Replace paths with your actual paths:
+   - Python Interpreter: c:\Users\Yeshwant\AppData\Local\Programs\Python\Python313\python.exe (or your venv path)
+   - Script Path: c:\Users\Yeshwant\OneDrive\Desktop\trying\scripts\fetch_rvr.py
+   - Log Path: c:\Users\Yeshwant\OneDrive\Desktop\trying\logs\cron_rvr.log
+
+3. Windows Alternative (Task Scheduler):
+   - Open Task Scheduler.
+   - Create Basic Task -> "Fetch RVR".
+   - Trigger: Daily -> Repeat task every 30 minutes.
+   - Action: Start a program.
+   - Program/script: c:\Users\Yeshwant\AppData\Local\Programs\Python\Python313\python.exe
+   - Arguments: c:\Users\Yeshwant\OneDrive\Desktop\trying\scripts\fetch_rvr.py

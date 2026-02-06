@@ -1,0 +1,69 @@
+<!-- Secondary Navigation Bar -->
+<nav class="secondary-navbar">
+    <div class="nav-content">
+        <div class="nav-left">
+            <!-- Mobile Menu Toggle -->
+            <button class="menu-toggle" onclick="toggleMobileMenu()">☰</button>
+
+            <!-- Menu Items -->
+            <ul class="nav-menu">
+                <!-- Employees Dropdown -->
+                <li class="nav-item dropdown">
+                    <a href="#" class="nav-link">Employees ▾</a>
+                    <div class="dropdown-content simple-list">
+                        <a href="{{ url_for('map.head_profile') }}" class="dropdown-item">Head</a>
+                        <a href="{{ url_for('map.employee_list') }}" class="dropdown-item">Employees</a>
+                    </div>
+                </li>
+
+                <!-- Services Dropdown -->
+                <li class="nav-item dropdown">
+                    <a href="#" class="nav-link">Services ▾</a>
+                    <div class="dropdown-content simple-list">
+                        <a href="#" class="dropdown-item">Weather Forecast</a>
+                        <a href="#" class="dropdown-item">Aviation Services</a>
+                        <a href="#" class="dropdown-item">Climate Data</a>
+                        <a href="#" class="dropdown-item">Radar Imagery</a>
+                        <a href="#" class="dropdown-item">Satellite Imagery</a>
+                    </div>
+                </li>
+
+                <!-- Workshops & Conferences Dropdown -->
+                <li class="nav-item dropdown">
+                    <a href="#" class="nav-link">Workshops & Conferences ▾</a>
+                    <div class="dropdown-content simple-list">
+                        <a href="#" class="dropdown-item">Upcoming Events</a>
+                        <a href="#" class="dropdown-item">Past Workshops</a>
+                        <a href="#" class="dropdown-item">Conference Proceedings</a>
+                    </div>
+                </li>
+            </ul>
+        </div>
+
+        <div class="nav-right">
+            {% if session.get('user') %}
+            <span style="color: white; margin-right: 15px; font-size: 0.9rem;">Welcome, {{ session.user }}</span>
+            {% if session.get('role') == 'admin' %}
+            <a href="{{ url_for('map.admin_uploads_view') }}" class="admin-login-btn" style="background:#4f46e5; margin-right:10px;">My Uploads</a>
+            {% endif %}
+            <a href="{{ url_for('map.logout') }}" class="admin-login-btn">Logout</a>
+            {% else %}
+            <a href="#" onclick="openModal('loginModal')" class="admin-login-btn">Admin Login</a>
+            {% endif %}
+        </div>
+    </div>
+</nav>
+<div class="mobile-menu-overlay" id="mobileMenu">
+    <span class="close-mobile-menu" onclick="toggleMobileMenu()">×</span>
+    <div class="mobile-menu-content">
+        <a href="{{ url_for('map.head_profile') }}" class="mobile-link">Head</a>
+        <a href="{{ url_for('map.employee_list') }}" class="mobile-link">Employees</a>
+        <a href="#" class="mobile-link">Services</a>
+        <a href="#" class="mobile-link">Workshops</a>
+        {% if session.get('user') %}
+        <a href="{{ url_for('map.logout') }}" class="mobile-link admin-mobile-link">Logout ({{ session.user }})</a>
+        {% else %}
+        <a href="#" onclick="openModal('loginModal')" class="mobile-link admin-mobile-link">Admin Login</a>
+        {% endif %}
+    </div>
+</div>

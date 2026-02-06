@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IMD Meteorological Dashboard</title>
+    <!-- Plotly.js via CDN -->
+    <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+</head>
+
+<body>
+    <header>
+        <div class="logo-container">
+            <h1>IMD Meteorological Observation Dashboard</h1>
+            <p class="subtitle">
+                {{ station_name }} ({{ selected_station }})
+                <span id="todayDateBadge"
+                    style="margin-left: 15px; font-size: 0.9em; color: #ffeb3b; font-weight: 500;">
+                    Today: -- --- ---- (UTC)
+                </span>
+            </p>
+        </div>
+        <div class="controls">
+            <a href="/" class="back-btn">← Back to Map</a>
+            <button id="refreshBtn">Refresh Data</button>
+        </div>
+    </header>
+
+    <div class="info-banner">
+        <div class="info-icon">ℹ️</div>
+        <div class="info-text">
+            Each graph represents complete 24-hour UTC data (00:00–23:59) for the previous three days.
+            "Today (Live)" shows data from 00:00 UTC to present, updating every 10 minutes.
+        </div>
+    </div>
+
+    <div class="status-bar" id="dataStatus">
+        Loading data...
+    </div>
+
+    <!-- Aerodrome Warning Banner (Initially Hidden) -->
+    <div id="warningBanner"
+        style="display: none; background: #d9534f; color: white; padding: 10px; overflow: hidden; white-space: nowrap; position: relative;">
+        <div id="warningText"
+            style="display: inline-block; padding-left: 100%; animation: marquee 15s linear infinite; font-weight: bold;">
+            <!-- Warning text goes here -->
+        </div>
+    </div>
+    <style>
+        @keyframes marquee {
+            0% {
+                transform: translate(0, 0);
+            }
+
+            100% {
+                transform: translate(-100%, 0);
+            }
+        }
+    </style>
+
+    <main class="dashboard-grid">
+        <!-- Temperature -->
+        <div class="chart-card">
+            <h3>Temperature (°C)</h3>
+            <div id="tempChart" class="plotly-chart"></div>
+        </div>
+
+        <!-- Dew Point -->
+        <div class="chart-card">
+            <h3>Dew Point (°C)</h3>
+            <div id="dewChart" class="plotly-chart"></div>
+        </div>
+
+        <!-- Wind Speed -->
+        <div class="chart-card">
+            <h3>Wind Speed (kt)</h3>
+            <div id="windSpeedChart" class="plotly-chart"></div>
+        </div>
+
+        <!-- Wind Direction -->
+        <div class="chart-card">
+            <h3>Wind Direction (°)</h3>
+            <div id="windDirChart" class="plotly-chart"></div>
+        </div>
+
+        <!-- Visibility -->
+        <div class="chart-card">
+            <h3>Visibility (m)</h3>
+            <div id="visChart" class="plotly-chart"></div>
+        </div>
+
+        <!-- QNH -->
+        <div class="chart-card">
+            <h3>QNH Pressure (hPa)</h3>
+            <div id="qnhChart" class="plotly-chart"></div>
+        </div>
+    </main>
+
+    <footer>
+        <p>Data Source: NOAA Aviation Weather Center | Auto-refresh: Every 5 minutes</p>
+    </footer>
+
+    <script>
+        window.SELECTED_STATION = "{{ selected_station }}";
+
+        // Poll for warnings
+        async function checkWarnings() {
+            try {
+                const res = await fetch(`/api/warnings/${window.SELECTED_STATION}`);
+                if (res.ok) {
+                    const data = await res.json();
+                    const banner = document.getElementById('warningBanner');
+                    const text = document.getElementById('warningText');
+                    
+                    if (data.active) {
+                        banner.style.display = 'block';
+                        // Add some spacing to the message for scrolling loop visual
+                        text.textContent = `⚠️ AERODROME WARNING FOR ${window.SELECTED_STATION}: ${data.message}    |    Valid until ${data.valid_to.substring(11,16)} UTC`;
+                    } else {
+                        banner.style.display = 'none';
+                    }
+                }
+            } catch (e) {
+                console.error("Warning fetch error:", e);
+            }
+        }
+        
+        // Check immediately and every minute
+        checkWarnings();
+        setInterval(checkWarnings, 60000);
+    </script>
+    <script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
+</body>
+
+</html>

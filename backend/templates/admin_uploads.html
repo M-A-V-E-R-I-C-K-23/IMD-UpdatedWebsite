@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Uploads - Admin</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/map.css') }}">
+    <style>
+        .uploads-container {
+            max-width: 1000px;
+            margin: 40px auto;
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        .header-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #eee;
+            padding-bottom: 10px;
+        }
+        .back-btn {
+            background: #64748b;
+            color: white;
+            padding: 8px 15px;
+            border-radius: 4px;
+            text-decoration: none;
+            font-size: 0.9rem;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th, td {
+            text-align: left;
+            padding: 12px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        th {
+            background: #f8fafc;
+            color: #475569;
+            font-weight: 600;
+        }
+        tr:hover {
+            background: #f1f5f9;
+        }
+        .delete-btn {
+            background: #ef4444;
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.85rem;
+        }
+        .delete-btn:hover {
+            background: #dc2626;
+        }
+        .status-tag {
+            font-size: 0.8rem;
+            padding: 2px 6px;
+            border-radius: 4px;
+            background: #e2e8f0;
+            color: #475569;
+        }
+    </style>
+</head>
+<body style="background-color: #f1f5f9;">
+    {% include 'includes/navbar.html' %}
+    
+    <div class="uploads-container">
+        <div class="header-row">
+            <h2>My Uploads</h2>
+            <a href="{{ url_for('map.index') }}" class="back-btn">← Back to Dashboard</a>
+        </div>
+        
+        {% if uploads %}
+        <table>
+            <thead>
+                <tr>
+                    <th>Filename</th>
+                    <th>Type</th>
+                    <th>Path</th>
+                    <th>Upload Date</th>
+                    <th>Expires On</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for file in uploads %}
+                <tr>
+                    <td>{{ file.filename }}</td>
+                    <td><span class="status-tag">{{ file.file_type }}</span></td>
+                    <td style="font-family:monospace; font-size:0.9rem;">{{ file.file_path }}</td>
+                    <td>{{ file.upload_date }}</td>
+                    <td style="color: #ea580c;">{{ file.expiration_date }}</td>
+                    <td>
+                        <button class="delete-btn" onclick="deleteUpload({{ file.id }})">Delete</button>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <p style="text-align:center; color:#64748b; padding: 20px;">No uploads found.</p>
+        {% endif %}
+    </div>
+
+    <script>
+        function deleteUpload(id) {
+            if(!confirm("Are you sure you want to permanently delete this file? This action cannot be undone.")) return;
+            
+            fetch(`/admin/uploads/delete/${id}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(res => res.json())
+            .then(data => {
+                if(data.success) {
+                    location.reload();
+                } else {
+                    alert('Error: ' + data.error);
+                }
+            })
+            .catch(err => alert("Request failed"));
+        }
+    </script>
+</body>
+</html>

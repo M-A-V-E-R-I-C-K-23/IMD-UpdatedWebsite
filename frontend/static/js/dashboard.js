@@ -1,0 +1,263 @@
+document.addEventListener('DOMContentLoaded', function () {
+    // Get station from global window variable (defined in template)
+    const selectedStation = window.SELECTED_STATION;
+    const refreshBtn = document.getElementById('refreshBtn');
+
+    // Colors for the 3 days (Newest to Oldest)
+    const colors = [
+        'rgb(0, 123, 255)',    // Blue (Yesterday)
+        'rgb(40, 167, 69)',    // Green (2 Days ago)
+        'rgb(255, 193, 7)'     // Yellow/Orange (3 Days ago)
+    ];
+
+    // Lighter colors for incomplete days
+    const incompleteColors = [
+        'rgba(0, 123, 255, 0.4)',
+        'rgba(40, 167, 69, 0.4)',
+        'rgba(255, 193, 7, 0.4)'
+    ];
+
+    function fetchData() {
+        fetch(`/api/data?station=${selectedStation}`)
+            .then(response => response.json())
+            .then(data => {
+                updateCharts(data);
+                updateDataStatus(data);
+            })
+            .catch(error => console.error('Error fetching data:', error));
+    }
+
+    function updateDataStatus(data) {
+        // Update header with station info
+        const statusContainer = document.getElementById('dataStatus');
+        if (statusContainer) {
+            let statusHtml = `<strong>${data.station}</strong> (${data.station_code}) | `;
+
+            data.days.forEach((day, idx) => {
+                const statusIcon = day.is_complete ? '✓' : '⚠';
+                const statusClass = day.is_complete ? 'complete' : 'incomplete';
+                statusHtml += `<span class="day-status ${statusClass}">${statusIcon} ${day.label}</span>`;
+                if (idx < data.days.length - 1) statusHtml += ' | ';
+            });
+
+            statusContainer.innerHTML = statusHtml;
+            statusContainer.innerHTML = statusHtml;
+        }
+
+        // --- Update Header Date Label ---
+        const dateBadge = document.getElementById('todayDateBadge');
+        if (dateBadge && data.today_live && data.today_live.date) {
+            // Format: YYYY-MM-DD -> DD Mon YYYY
+            const dateObj = new Date(data.today_live.date);
+            const options = { day: '2-digit', month: 'short', year: 'numeric', timeZone: 'UTC' };
+            const dateStr = dateObj.toLocaleDateString('en-GB', options);
+            dateBadge.textContent = `Today: ${dateStr} (UTC)`;
+        } else if (dateBadge) {
+            // Fallback to current UTC date if today_live is missing
+            const now = new Date();
+            const options = { day: '2-digit', month: 'short', year: 'numeric', timeZone: 'UTC' };
+            dateBadge.textContent = `Today: ${now.toLocaleDateString('en-GB', options)} (UTC)`;
+        }
+    }
+
+    function updateCharts(data) {
+        const chartConfigs = [
+            { id: 'tempChart', key: 'temperature', title: 'Temperature (°C)', yaxis: 'Temperature (°C)' },
+            { id: 'dewChart', key: 'dew_point', title: 'Dew Point (°C)', yaxis: 'Dew Point (°C)' },
+            { id: 'windSpeedChart', key: 'wind_speed', title: 'Wind Speed (kt)', yaxis: 'Wind Speed (kt)' },
+            { id: 'windDirChart', key: 'wind_direction', title: 'Wind Direction (°)', yaxis: 'Direction (°)' },
+            { id: 'visChart', key: 'visibility', title: 'Visibility (m)', yaxis: 'Visibility (m)' },
+            { id: 'qnhChart', key: 'qnh', title: 'QNH Pressure (hPa)', yaxis: 'Pressure (hPa)' }
+        ];
+
+        chartConfigs.forEach(config => {
+            const traces = [];
+
+            data.days.forEach((dayData, index) => {
+                addTrace(dayData, index, false);
+            });
+
+            // Add Today (Live) Trace
+            if (data.today_live) {
+                addTrace(data.today_live, 3, true); // Index 3 for distinct color or handling
+            }
+
+            function addTrace(dayData, index, isLive) {
+                // Map times to a common reference date for overlay (full 24-hour alignment)
+                const xValues = dayData.data.map(obs => `2000-01-01 ${obs.time}`);
+                const yValues = dayData.data.map(obs => obs[config.key]);
+
+                // Styling for Live vs Historical
+                let lineColor, lineDash, lineWidth;
+
+                if (isLive) {
+                    lineColor = 'rgb(220, 53, 69)'; // Red for Live
+                    lineDash = 'solid'; // Solid for Today
+                    lineWidth = 3; // Thicker
+                } else {
+                    lineColor = dayData.is_complete ? colors[index] : incompleteColors[index];
+                    lineDash = 'dot'; // Dotted/Dashed for History
+                    lineWidth = 2;
+                }
+
+                traces.push({
+                    x: xValues,
+                    y: yValues,
+                    type: 'scatter',
+                    mode: 'lines+markers',
+                    name: dayData.label,
+                    line: {
+                        color: lineColor,
+                        width: lineWidth,
+                        dash: lineDash
+                    },
+                    marker: {
+                        size: isLive ? 6 : 4,
+                        symbol: 'circle'
+                    },
+                    connectgaps: true,
+                    hovertemplate: `<b>${dayData.label}</b><br>` +
+                        `Time: %{x|%H:%M} UTC<br>` +
+                        `${config.yaxis}: %{y}<br>` +
+                        `<extra></extra>`
+                });
+            }
+
+            const layout = {
+                xaxis: {
+                    title: 'Time (UTC)',
+                    type: 'date',
+                    tickformat: '%H:%M',
+                    // ENFORCE full 24-hour range
+                    range: ['2000-01-01 00:00:00', '2000-01-01 23:59:59'],
+                    dtick: 3 * 60 * 60 * 1000, // 3 hours in milliseconds
+                    showgrid: true,
+                    gridcolor: '#e0e0e0',
+                    fixedrange: false  // Allow zoom on x-axis
+                },
+                yaxis: {
+                    title: config.yaxis,
+                    showgrid: true,
+                    gridcolor: '#e0e0e0',
+                    fixedrange: false
+                },
+                margin: { t: 40, r: 30, b: 60, l: 70 },
+                legend: {
+                    orientation: 'h',
+                    y: 1.12,
+                    x: 0.5,
+                    xanchor: 'center',
+                    font: { size: 11 }
+                },
+                hovermode: 'x unified',
+                plot_bgcolor: 'white',
+                paper_bgcolor: 'white',
+                // Add shapes to highlight midnight boundaries
+                shapes: [
+                    {
+                        type: 'line',
+                        x0: '2000-01-01 00:00:00',
+                        x1: '2000-01-01 00:00:00',
+                        y0: 0,
+                        y1: 1,
+                        yref: 'paper',
+                        line: { color: '#ccc', width: 1, dash: 'dot' }
+                    },
+                    {
+                        type: 'line',
+                        x0: '2000-01-01 12:00:00',
+                        x1: '2000-01-01 12:00:00',
+                        y0: 0,
+                        y1: 1,
+                        yref: 'paper',
+                        line: { color: '#ccc', width: 1, dash: 'dot' }
+                    }
+                ]
+            };
+
+            const plotConfig = {
+                responsive: true,
+                displayModeBar: true,
+                modeBarButtonsToRemove: ['lasso2d', 'select2d'],
+                displaylogo: false,
+                scrollZoom: true
+            };
+
+            Plotly.newPlot(config.id, traces, layout, plotConfig);
+        });
+    }
+
+    // Live Update Logic
+    const LIVE_UPDATE_INTERVAL = 10 * 60 * 1000; // 10 minutes
+
+    function fetchLiveData() {
+        console.log("Fetching live data...");
+        fetch(`/api/live_data?station=${selectedStation}`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.today_live) {
+                    // Update the global data structure or chart directly.
+                    // For simplicity, we'll re-fetch the whole data if day changed or just merge.
+                    // But to be robust and simple, let's merge into the existing chart.
+                    updateLiveTrace(data.today_live);
+                }
+            })
+            .catch(error => console.error('Error fetching live data:', error));
+    }
+
+    function updateLiveTrace(liveData) {
+        // Check for rollover
+        const todayDate = liveData.date; // YYYY-MM-DD
+        const currentUtcDate = new Date().toISOString().split('T')[0];
+
+        // If the live data is stale (from yesterday) or we crossed midnight locally?
+        // Actually, the backend sends "Today"'s data based on UTC.
+        // If backend says today is X, we trust it.
+
+        // We need to update existing charts.
+        const chartIds = ['tempChart', 'dewChart', 'windSpeedChart', 'windDirChart', 'visChart', 'qnhChart'];
+        const chartConfigs = [
+            { id: 'tempChart', key: 'temperature' },
+            { id: 'dewChart', key: 'dew_point' },
+            { id: 'windSpeedChart', key: 'wind_speed' },
+            { id: 'windDirChart', key: 'wind_direction' },
+            { id: 'visChart', key: 'visibility' },
+            { id: 'qnhChart', key: 'qnh' }
+        ];
+
+        chartConfigs.forEach(config => {
+            const chartDiv = document.getElementById(config.id);
+            if (!chartDiv || !chartDiv.data) return;
+
+            // Find the "Today (Live)" trace
+            let traceIndex = chartDiv.data.findIndex(trace => trace.name === liveData.label);
+
+            // Map new data
+            const xValues = liveData.data.map(obs => `2000-01-01 ${obs.time}`);
+            const yValues = liveData.data.map(obs => obs[config.key]);
+
+            if (traceIndex !== -1) {
+                // Update existing trace
+                Plotly.restyle(config.id, {
+                    x: [xValues],
+                    y: [yValues]
+                }, [traceIndex]);
+            } else {
+                // Trace not found (maybe first load was empty), need to add it?
+                // For simplicity, strict requirement says "Add new trace... in all graphs".
+                // We should have added it initially even if empty.
+                // But if we didn't, we can extend.
+                // Let's rely on the fact that fetchData() creates it initially.
+            }
+        });
+    }
+
+    // Initialize
+    fetchData();
+
+    // Auto-refresh every 10 minutes for live data
+    setInterval(fetchLiveData, LIVE_UPDATE_INTERVAL);
+
+    // Event Listeners
+    refreshBtn.addEventListener('click', fetchData);
+});

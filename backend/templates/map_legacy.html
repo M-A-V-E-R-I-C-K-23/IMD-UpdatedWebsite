@@ -1,0 +1,996 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IMD Maharashtra - Meteorological Monitoring</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/map.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/notam_styles.css') }}">
+
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <style>
+        /* Mask everything outside Maharashtra */
+        .leaflet-tile-pane {
+            clip-path: polygon(72.6% 22%, 73% 21.8%, 73.5% 21.5%, 74% 21.2%, 74.5% 20.8%,
+                    75% 20.5%, 75.5% 20.2%, 76% 19.8%, 76.5% 19.5%, 77% 19.2%,
+                    77.5% 18.8%, 78% 18.5%, 78.2% 18.2%, 78% 17.8%, 77.5% 17.5%,
+                    77% 17.2%, 76.5% 16.8%, 76% 16.5%, 75.5% 16.3%, 75% 16.2%,
+                    74.5% 16%, 74% 15.8%, 73.5% 15.7%, 73% 15.8%, 72.8% 16%,
+                    72.6% 16.5%, 72.6% 17%, 72.6% 17.5%, 72.6% 18%, 72.6% 18.5%,
+                    72.6% 19%, 72.6% 19.5%, 72.6% 20%, 72.6% 20.5%, 72.6% 21%,
+                    72.6% 21.5%, 72.6% 22%);
+        }
+    </style>
+</head>
+
+<body>
+    <header class="map-header">
+        <div class="header-content">
+            <div class="logo-section">
+                <!-- Logo & Text Wrapper -->
+                <div class="header-left">
+                    <div class="logo-container">
+                        <img src="{{ url_for('static', filename='images/imd_logo.png') }}" alt="IMD Logo"
+                            class="imd-logo">
+                    </div>
+                    <div class="header-text">
+                        <h1>India Meteorological Department (IMD)</h1>
+                        <h2>Meteorological Watch Office - Mumbai</h2>
+
+                        <!-- Auth Status moved here -->
+                        <div class="auth-status-line" style="font-size: 0.9rem; margin-top: 5px; font-weight: 300;">
+                            {% if session.get('user') %}
+                            Logged in as <strong>{{ session.user }}</strong> | <a href="{{ url_for('map.logout') }}"
+                                class="auth-link" style="color: white; text-decoration: underline;">Logout</a>
+                            {% else %}
+                            <span class="auth-link" onclick="openModal('loginModal')"
+                                style="cursor:pointer; color:white; text-decoration:underline;">Admin Login</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="header-right">
+                <!-- Admin Section -->
+                <div class="admin-section">
+                    {% if session.get('user') %}
+                    <!-- Kept only functional links not present elsewhere -->
+                    <a href="#" class="admin-link"
+                        onclick="document.getElementById('noticeModal').classList.add('show')">Post Notice</a>
+                    {% endif %}
+                </div>
+
+                <!-- UTC Clock -->
+                <div class="utc-clock">
+                    UTC: <span id="utc-time">--:--</span> | <span id="utc-date">-- --- ----</span>
+                </div>
+            </div>
+
+    </header>
+
+    <!-- NOTAM Upload Modal -->
+    <div id="notamModal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn" onclick="closeModal('notamModal')">&times;</span>
+            <h3>Upload NOTAM PDF</h3>
+            <p style="font-size: 0.85rem; color: #666; margin-bottom: 15px;">
+                Upload a NOTAM .pdf file. Text will be extracted automatically.
+            </p>
+            <form id="notam-upload-form" onsubmit="handleNotamUpload(event)">
+                <input type="file" name="file" accept=".pdf" required class="modal-input">
+                <button type="submit" class="modal-submit-btn">Upload & Parse</button>
+            </form>
+            <div id="notam-status" style="margin-top:10px; font-size: 0.9rem;"></div>
+        </div>
+    </div>
+
+    <!-- Main Container -->
+    <div class="dashboard-container">
+        <!-- Left Sidebar -->
+        <aside class="sidebar left-sidebar">
+            <div class="sidebar-section">
+                <h3 class="sidebar-title">OPERATIONAL ACTIONS</h3>
+                <a href="https://121.240.10.8:8000" target="_blank" rel="noopener noreferrer"
+                    class="action-btn warning-btn"
+                    style="text-decoration:none; text-align:center; display:block; padding-top:10px;">Aerodrome ↗</a>
+
+                <!-- NOTAM Module -->
+                <div class="notam-module" id="notam-module">
+                    <div class="notam-header">NOTAM</div>
+
+                    <!-- Admin Controls -->
+                    {% if session.get('role') == 'admin' %}
+                    <div class="notam-admin-panel">
+                        <!-- Tabs -->
+                        <div class="notam-tabs">
+                            <button class="tab-btn active" onclick="switchNotamTab('active')">Active</button>
+                            <button class="tab-btn" onclick="switchNotamTab('drafts')">Drafts</button>
+                            <button class="tab-btn" onclick="switchNotamTab('archived')">Archived</button>
+                        </div>
+
+                        <!-- VIEW: ACTIVE -->
+                        <div id="notam-view-active" class="notam-tab-content">
+                            <div id="admin-active-list"></div>
+                        </div>
+
+                        <!-- VIEW: DRAFTS -->
+                        <div id="notam-view-drafts" class="notam-tab-content" style="display:none;">
+                            <!-- Upload Button -->
+                            <form id="notam-upload-form" style="margin-bottom:10px; text-align:center;">
+                                <input type="file" name="file" id="notam-file-in" accept=".pdf" style="display: none;"
+                                    onchange="uploadNotamDraft(this)">
+                                <button type="button" class="notam-action-btn"
+                                    onclick="document.getElementById('notam-file-in').click()">
+                                    � Upload New PDF
+                                </button>
+                            </form>
+                            <div id="admin-draft-list"></div>
+                        </div>
+
+                        <!-- VIEW: ARCHIVED -->
+                        <div id="notam-view-archived" class="notam-tab-content" style="display:none;">
+                            <div id="admin-archived-list"></div>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <!-- Public Ticker Display -->
+                    <div class="notam-ticker-container" id="notam-ticker" style="display: none;">
+                        <div class="notam-ticker-wrap">
+                            <div class="notam-ticker-item" id="notam-text"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="sidebar-section">
+                <h3 class="sidebar-title">EXTERNAL TOOLS</h3>
+                <a href="https://camd.imd.gov.in/dgca-cp/" target="_blank" class="sidebar-btn">Instrument
+                    Calibration</a>
+                <a href="http://121.240.10.9:8080/" target="_blank" class="sidebar-btn">Forecast Verification</a>
+                <button class="sidebar-btn disabled">Automatic TAF</button>
+            </div>
+
+            <!-- News & Events (Official) -->
+            <div class="sidebar-section news-sidebar-section">
+                <h3 class="sidebar-title board-header-sidebar">
+                    📢 News & Events
+                    {% if session.get('role') == 'admin' %}
+                    <span class="sidebar-add-btn" onclick="openModal('newsModal')">+</span>
+                    {% endif %}
+                </h3>
+
+
+                <div class="sidebar-content-scroll">
+                    {% if news_items %}
+                    {% for item in news_items %}
+                    <div class="sidebar-item">
+                        <div class="sidebar-item-header">
+                            <span class="item-date">{{ item.upload_time }}</span>
+                            {% if session.get('role') == 'admin' %}
+                            <form action="{{ url_for('map.delete_news', item_id=item['id']) }}" method="POST"
+                                style="display:inline;">
+                                <button type="submit" class="sidebar-delete-btn"
+                                    onclick="return confirm('Delete?')">×</button>
+                            </form>
+                            {% endif %}
+                        </div>
+                        {% if item.filename %}
+                        <a href="{{ url_for('map.serve_file', type='news', filename=item.filename) }}" target="_blank"
+                            class="sidebar-item-title-link">
+                            {{ item.title }} 📎
+                        </a>
+                        {% else %}
+                        <div class="sidebar-item-title">{{ item.title }}</div>
+                        {% endif %}
+                        {% if item.description %}
+                        <div class="sidebar-item-desc">{{ item.description }}</div>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                    {% else %}
+                    <div class="empty-sidebar-msg">No active news.</div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Notice Board (Internal) -->
+            <div class="sidebar-section notice-sidebar-section">
+                <h3 class="sidebar-title board-header-sidebar">
+                    📌 Notice Board
+                    {% if session.get('user') %}
+                    <span class="sidebar-add-btn" onclick="openModal('noticeModal')">+</span>
+                    <!-- Image Upload Btn -->
+                    <form id="notice-img-form" style="display:inline;">
+                        <input type="file" id="notice-img-in" style="display:none;" accept="image/*"
+                            onchange="uploadDraft('notices', this)">
+                        <span class="sidebar-add-btn" style="background:#555; margin-right:5px;"
+                            onclick="document.getElementById('notice-img-in').click()"
+                            title="Upload Image Notice">📷</span>
+                    </form>
+                    {% endif %}
+                </h3>
+                <div class="sidebar-content-scroll">
+                    {% if notice_items %}
+                    {% for item in notice_items %}
+                    {% if item.status == 'DRAFT' %}
+                    <!-- Draft Notice -->
+                    <div class="sidebar-item" style="border-left: 3px solid orange; background: #fffbe6;">
+                        <div class="sidebar-item-header">
+                            <span class="item-user">📝 Draft</span>
+                            <span class="item-date">{{ item.upload_time }}</span>
+                        </div>
+                        {% if item.filename %}
+                        <img src="{{ url_for('map.serve_file', type='notices', filename=item.filename) }}"
+                            style="width:100%; max-height:150px; object-fit:contain; margin:5px 0; border:1px solid #ddd;">
+                        {% endif %}
+
+                        <input type="text" id="notice-title-{{item.id}}" value="Notice" class="notam-edit-area"
+                            style="height:30px; margin-bottom:5px; font-weight:bold;">
+                        <textarea id="notice-msg-{{item.id}}" class="notam-edit-area"
+                            style="height:60px;">{{ item.message }}</textarea>
+
+                        <div style="margin-top:5px; text-align:right;">
+                            <button onclick="publishNotice({{ item.id }})" class="btn-xs btn-publish">Publish</button>
+                            <button onclick="deleteNotice({{ item.id }})" class="btn-xs btn-danger">Delete</button>
+                        </div>
+                    </div>
+                    {% else %}
+                    <!-- Published Notice -->
+                    <div class="sidebar-item">
+                        <div class="sidebar-item-header">
+                            <span class="item-user">👤 {{ item.uploaded_by }}</span>
+                            <span class="item-date">{{ item.upload_time }}</span>
+                        </div>
+                        <div class="sidebar-item-title">{{ item.title }}</div>
+
+                        <!-- Image Display -->
+                        {% if item.filename and item.filename.lower().endswith(('.png', '.jpg', '.jpeg')) %}
+                        <img src="{{ url_for('map.serve_file', type='notices', filename=item.filename) }}"
+                            style="width:100%; max-height:200px; object-fit:contain; margin:5px 0; border-radius:4px;">
+                        {% endif %}
+
+                        <div class="sidebar-item-desc">{{ item.message }}</div>
+
+                        {% if item.filename and not item.filename.lower().endswith(('.png', '.jpg', '.jpeg')) %}
+                        <a href="{{ url_for('map.serve_file', type='notices', filename=item.filename) }}"
+                            target="_blank" class="sidebar-attachment-link">
+                            📎 Attachment
+                        </a>
+                        {% endif %}
+
+                        <div style="font-size: 0.7rem; color:#888; margin-top:3px;">
+                            {{ item.upload_time }}
+                            {% if session.get('role') == 'admin' %}
+                            <span style="float:right; cursor:pointer; color:red;"
+                                onclick="deleteNotice({{ item.id }})">🗑️</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endif %}
+                    {% endfor %}
+                    {% else %}
+                    <div class="empty-sidebar-msg">No notices.</div>
+                    {% endif %}
+                </div>
+            </div>
+        </aside>
+
+        <!-- Center Map Panel -->
+        <div class="center-panel">
+            <div class="map-wrapper">
+                <div class="map-overlay">
+                    <div class="instruction-card">
+                        <div class="instruction-icon">📍</div>
+                        <!-- <h3>Select an Airport</h3> -->
+                        <p>Select airport for data</p>
+                    </div>
+                </div>
+                <div id="map"></div>
+            </div>
+        </div>
+
+        <!-- Right Sidebar -->
+        <aside class="sidebar right-sidebar">
+            <!-- OLBS Section -->
+            <div class="sidebar-section">
+                <h3 class="sidebar-title">OLBS</h3>
+                <div class="olbs-container">
+                    <a href="https://olbs.amsschennai.gov.in/nsweb/FlightBriefing/#showLogin" target="_blank"
+                        class="olbs-btn">Chennai</a>
+                    <a href="https://olbs.amssdelhi.gov.in/nsweb/FlightBriefing/#showLogin" target="_blank"
+                        class="olbs-btn">Delhi</a>
+                </div>
+            </div>
+            <div class="sidebar-section">
+                <h3 class="sidebar-title">RESOURCES</h3>
+                <a href="https://mausam.imd.gov.in/mumbai/" target="_blank" class="sidebar-link">RMC Mumbai</a>
+                <a href="https://satmet.imd.gov.in/" target="_blank" class="sidebar-link">Satellite Images</a>
+                <a href="https://metnet.imd.gov.in/Welcome_to_Intra-IMD/welcome.php" target="_blank"
+                    class="sidebar-link">METNET</a>
+                <a href="https://internal.imd.gov.in/pages/radar_main.php?adta=vrv" target="_blank"
+                    class="sidebar-link">Radar / DWR</a>
+            </div>
+        </aside>
+    </div>
+
+    <!-- Bottom Info Panel -->
+    <div class="bottom-info-container">
+        <div class="info-card rvr-card bottom-card">
+            <div class="card-header">
+                LIVE RVR – MUMBAI
+            </div>
+            <div class="card-content rvr-content-compact">
+                <div class="rvr-status-text">Live RVR is hosted on CAMD portal</div>
+                <a href="http://rvrcamd.imd.gov.in:5000/live-rvr" target="_blank" class="view-data-btn rvr-btn">
+                    Open Live RVR (CAMD) ↗
+                </a>
+            </div>
+        </div>
+        <div class="info-card bottom-card">
+            <div class="card-header">Latest METAR & TAF (VABB)</div>
+            <div class="card-content">
+                <div class="metar-display">
+                    <p><strong>METAR:</strong> Loading...</p>
+                    <p><strong>TAF:</strong> Loading...</p>
+                </div>
+            </div>
+        </div>
+        <div class="info-card bottom-card" id="sigmet-card">
+            <div class="card-header">
+                SIGMET – Mumbai FIR
+            </div>
+            <div class="card-content" id="sigmet-content"
+                style="display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; gap: 10px;">
+                <!-- Content will be injected by JS -->
+                <p style="color: #666; font-size: 0.9rem;">Loading status...</p>
+
+                <a href="https://aviationweather.gov/gfa/#sigmet" target="_blank" class="view-data-btn"
+                    style="padding: 8px 20px; font-size: 0.95rem; margin-top: 5px;">
+                    Display SIGMET ↗
+                </a>
+            </div>
+        </div>
+    </div>
+
+    </div>
+
+    <!-- Modals -->
+    <!-- Login Modal -->
+    <div id="loginModal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal" onclick="closeModal('loginModal')">&times;</span>
+            <h3 style="margin-bottom:15px; color:#333;">Internal Login</h3>
+            <form action="{{ url_for('map.login') }}" method="POST" class="modal-form">
+                <div class="form-group">
+                    <label>Username</label>
+                    <input type="text" name="username" required placeholder="User or Admin">
+                </div>
+                <div class="form-group">
+                    <label>Password</label>
+                    <input type="password" name="password" placeholder="Any password (dev mode)">
+                </div>
+                <button type="submit" class="submit-btn">Login</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- News Modal -->
+    <div id="newsModal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal" onclick="closeModal('newsModal')">&times;</span>
+            <h3 style="margin-bottom:15px; color:#333;">Post News (Admin)</h3>
+            <form action="{{ url_for('map.upload_news') }}" method="POST" enctype="multipart/form-data"
+                class="modal-form">
+                <div class="form-group">
+                    <label>Title</label>
+                    <input type="text" name="title" required>
+                </div>
+                <div class="form-group">
+                    <label>Description</label>
+                    <textarea name="description" rows="3"></textarea>
+                </div>
+                <div class="form-group">
+                    <label>File (PDF/Image/Doc)</label>
+                    <input type="file" name="file" required>
+                </div>
+                <button type="submit" class="submit-btn">Upload News</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Notice Modal -->
+    <div id="noticeModal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal" onclick="closeModal('noticeModal')">&times;</span>
+            <h3 style="margin-bottom:15px; color:#333;">Post Notice</h3>
+            <form action="{{ url_for('map.post_notice') }}" method="POST" enctype="multipart/form-data"
+                class="modal-form">
+                <div class="form-group">
+                    <label>Title</label>
+                    <input type="text" name="title" required>
+                </div>
+                <div class="form-group">
+                    <label>Message</label>
+                    <textarea name="message" rows="3"></textarea>
+                </div>
+                <div class="form-group">
+                    <label>Attachment (Optional)</label>
+                    <input type="file" name="file">
+                </div>
+                <button type="submit" class="submit-btn">Post Notice</button>
+            </form>
+        </div>
+    </div>
+
+    <footer class="map-footer">
+        <p>Data Source: NOAA Aviation Weather Center | Displaying previous 3 complete days (UTC)</p>
+    </footer>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script>
+        // Initialize Map
+        const map = L.map('map', {
+            zoomControl: false,
+            attributionControl: false,
+            minZoom: 6,
+            maxZoom: 10,
+            // Restrict panning generally to India region
+            maxBounds: [[15, 72], [22.5, 81]],
+            maxBoundsViscosity: 0.8
+        });
+
+        // Add Zoom Control at bottom right
+        L.control.zoom({ position: 'bottomright' }).addTo(map);
+
+        // Add OpenStreetMap Tile Layer
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '© OpenStreetMap contributors'
+        }).addTo(map);
+
+        // Load State and District GeoJSONs
+        Promise.all([
+            fetch("{{ url_for('static', filename='geojson/maharashtra.geojson') }}").then(r => r.json()),
+            fetch("{{ url_for('static', filename='geojson/maharashtra_districts.geojson') }}").then(r => r.json())
+        ]).then(([stateData, districtData]) => {
+
+            // 1. Add District Boundaries (Bottom Layer)
+            L.geoJSON(districtData, {
+                style: {
+                    color: '#666666',   // Grey for districts
+                    weight: 1,          // Thin lines
+                    opacity: 0.5,
+                    fillColor: 'transparent',
+                    dashArray: '4, 4',  // Dashed lines for clarity
+                    className: 'district-boundary'
+                },
+                interactive: false // Non-interactive districts
+            }).addTo(map);
+
+            // 2. Add State Boundary (Top Layer, High Contrast)
+            const stateLayer = L.geoJSON(stateData, {
+                style: {
+                    color: '#002244', // Dark Blue
+                    weight: 3,        // Thicker outline
+                    opacity: 1,
+                    fillColor: 'transparent',
+                    className: 'state-boundary'
+                }
+            }).addTo(map);
+
+            // Fit bounds to state
+            map.fitBounds(stateLayer.getBounds(), { padding: [30, 30] });
+
+            // 3. Create Inverse Mask (Overlay)
+            // Use stateData to define the hole
+            let mainRing = [];
+            const geometry = stateData.geometry || stateData.features[0].geometry;
+
+            if (geometry.type === 'Polygon') {
+                mainRing = geometry.coordinates[0];
+            } else if (geometry.type === 'MultiPolygon') {
+                // Find largest ring
+                let maxPoints = 0;
+                geometry.coordinates.forEach(poly => {
+                    const ring = poly[0];
+                    if (ring.length > maxPoints) {
+                        maxPoints = ring.length;
+                        mainRing = ring;
+                    }
+                });
+            }
+
+            // GeoJSON [Lng, Lat] -> Leaflet [Lat, Lng]
+            const maskHole = mainRing.map(coord => [coord[1], coord[0]]);
+            const worldBounds = [[90, -180], [90, 180], [-90, 180], [-90, -180]];
+
+            L.polygon([worldBounds, maskHole], {
+                color: 'transparent',
+                fillColor: '#dedede',
+                fillOpacity: 0.85,
+                interactive: false,
+                stroke: false
+            }).addTo(map);
+
+        }).catch(err => {
+            console.error("Error loading Map Data:", err);
+            // Fallback if only state boundary loads or districts fail
+            // (Minimal fallback could be implemented here but relying on console log for now)
+        });
+
+        // Custom airport icon
+        const airportIcon = L.divIcon({
+            className: 'airport-marker',
+            html: '<div class="marker-pin"></div><div class="marker-pulse"></div>',
+            iconSize: [30, 30],
+            iconAnchor: [15, 30]
+        });
+
+        // Load station data from Flask
+        const stationCoords = {{ station_coords | tojson }};
+        const stationNames = {{ stations | tojson }};
+
+        // Add markers for each station
+        for (const [code, coords] of Object.entries(stationCoords)) {
+            const name = stationNames[code] || code;
+
+            // Create marker
+            const marker = L.marker(coords, { icon: airportIcon }).addTo(map);
+
+            // Add Permanent Label (Tooltip)
+            marker.bindTooltip(name, {
+                permanent: true,
+                direction: 'right',
+                offset: [10, -15],
+                className: 'airport-label'
+            });
+
+            // Popup content
+            const popupContent = `
+                <div class="airport-popup">
+                    <h4>${name}</h4>
+                    <p>ICAO: ${code}</p>
+                    <a href="/dashboard/${code}" class="view-data-btn">View Met Graphs</a>
+                </div>
+            `;
+            marker.bindPopup(popupContent, { offset: [0, -35] });
+
+            // Navigation function
+            function navigateToDashboard() {
+                window.location.href = `/dashboard/${code}`;
+            }
+
+            // Add click listener to tooltip DOM element after it's added
+            marker.on('tooltipopen', function (e) {
+                const tooltipNode = e.tooltip._container;
+                if (tooltipNode) {
+                    tooltipNode.style.cursor = 'pointer';
+                    tooltipNode.addEventListener('click', navigateToDashboard);
+                }
+            });
+
+            // Override click
+            marker.off('click');
+            marker.on('click', navigateToDashboard);
+        }
+
+        // Logic to hide labels at low zoom levels to reduce clutter
+        function updateLabelVisibility() {
+            const zoom = map.getZoom();
+            const mapContainer = document.getElementById('map');
+            // Hide labels if zoom is less than 8
+            if (zoom < 8) {
+                mapContainer.classList.add('map-low-zoom');
+            } else {
+                mapContainer.classList.remove('map-low-zoom');
+            }
+        }
+
+        map.on('zoomend', updateLabelVisibility);
+
+        // Initial check after map load
+        setTimeout(updateLabelVisibility, 1000);
+
+        // UTC Clock
+        function updateUTCTime() {
+            const now = new Date();
+            const hours = String(now.getUTCHours()).padStart(2, '0');
+            const minutes = String(now.getUTCMinutes()).padStart(2, '0');
+            document.getElementById('utc-time').textContent = `${hours}:${minutes}`;
+
+            // Update Date
+            const options = { day: '2-digit', month: 'short', year: 'numeric', timeZone: 'UTC' };
+            const dateStr = now.toLocaleDateString('en-GB', options);
+            document.getElementById('utc-date').textContent = dateStr;
+        }
+
+        setInterval(updateUTCTime, 1000);
+        updateUTCTime(); // Run immediately
+
+        // --- NOTICE MANAGEMENT ---
+        async function deleteNotice(id) {
+            if (!confirm("Are you sure you want to delete this notice?")) return;
+
+            try {
+                const response = await fetch(`/api/notices/delete/${id}`, { method: 'POST' });
+                if (response.ok) {
+                    location.reload(); // Simple reload to refresh list
+                } else {
+                    alert("Failed to delete notice.");
+                }
+            } catch (err) {
+                console.error("Delete Error:", err);
+            }
+        }
+
+        async function uploadDraft(type, input) {
+            if (!input.files[0]) return;
+            const formData = new FormData();
+            formData.append('file', input.files[0]);
+
+            try {
+                const res = await fetch(`/api/${type}/draft`, { method: 'POST', body: formData });
+                const data = await res.json();
+
+                if (data.success) {
+                    location.reload();
+                } else {
+                    alert('Upload Failed: ' + (data.error || 'Unknown'));
+                }
+            } catch (e) {
+                alert('System Error during upload');
+                console.error(e);
+            } finally {
+                input.value = '';
+            }
+        }
+
+        async function publishNews(id) {
+            const title = document.getElementById(`news-title-${id}`).value;
+            const description = document.getElementById(`news-desc-${id}`).value;
+
+            await fetch(`/api/news/publish/${id}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ title, description })
+            });
+            location.reload();
+        }
+
+        async function publishNotice(id) {
+            const title = document.getElementById(`notice-title-${id}`).value;
+            const message = document.getElementById(`notice-msg-${id}`).value;
+
+            await fetch(`/api/notices/publish/${id}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ title, message })
+            });
+            location.reload();
+        }
+
+        function deleteNews(id) {
+            if (!confirm("Delete news?")) return;
+            fetch(`/api/news/delete/${id}`, { method: 'POST' }).then(() => location.reload());
+        }
+
+        // --- NOTAM LIFECYCLE MANAGEMENT ---
+
+        // Tab Switcher
+        function switchNotamTab(tabName) {
+            // Buttons
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+
+            // Content
+            document.querySelectorAll('.notam-tab-content').forEach(div => div.style.display = 'none');
+            document.getElementById('notam-view-' + tabName).style.display = 'block';
+
+            // Refresh List
+            fetchNotamLists();
+        }
+
+        async function fetchNotamLists() {
+            try {
+                const response = await fetch('/api/notam/list');
+                const data = await response.json();
+
+                renderDrafts(data.drafts);
+                renderActive(data.active);
+                renderArchived(data.archived);
+
+            } catch (err) {
+                console.error("Error fetching lists", err);
+            }
+        }
+
+        function renderDrafts(drafts) {
+            const container = document.getElementById('admin-draft-list');
+            if (drafts.length === 0) {
+                container.innerHTML = '<small style="color:#777">No drafts.</small>';
+                return;
+            }
+            container.innerHTML = drafts.map(n => `
+                <div class="notam-card-draft">
+                    <textarea id="edit-draft-${n.id}" class="notam-edit-area">${n.final_notam_text}</textarea>
+                    <div style="margin-top:5px; font-size:0.75rem;">
+                        <span>Valid till: ${n.valid_till_utc} (UTC)</span>
+                    </div>
+                    <div class="notam-actions">
+                        <button onclick="saveDraft(${n.id})" class="btn-xs">Save</button>
+                        <button onclick="publishNotam(${n.id})" class="btn-xs btn-publish">Publish</button>
+                        <button onclick="deleteNotam(${n.id})" class="btn-xs btn-danger">Delete</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function renderActive(active) {
+            const container = document.getElementById('admin-active-list');
+            if (active.length === 0) {
+                container.innerHTML = '<small style="color:#777">No active NOTAMs.</small>';
+                return;
+            }
+            container.innerHTML = active.map(n => `
+                <div class="notam-card-active">
+                    <div class="notam-text-display">${n.final_notam_text}</div>
+                    <div style="font-size:0.75rem; color:#555;">Expiring: ${n.valid_till_utc}</div>
+                     <button onclick="archiveNotam(${n.id})" class="btn-xs btn-warning">Archive</button>
+                </div>
+            `).join('');
+        }
+
+        function renderArchived(archived) {
+            const container = document.getElementById('admin-archived-list');
+            if (archived.length === 0) {
+                container.innerHTML = '<small style="color:#777">No archived NOTAMs.</small>';
+                return;
+            }
+            container.innerHTML = archived.map(n => `
+                <div class="notam-card-archived">
+                     <div style="font-size:0.8rem; color:#666;">${n.final_notam_text}</div>
+                    <button onclick="deleteNotam(${n.id})" class="btn-xs btn-danger" style="margin-top:5px;">Delete Permanent</button>
+                </div>
+            `).join('');
+        }
+
+        function formatDateForInput(dateStr) {
+            if (!dateStr) return '';
+            // Assuming dateStr is "YYYY-MM-DD HH:MM:SS" from DB
+            return dateStr.replace(' ', 'T').substring(0, 16);
+        }
+
+        function renderDrafts(drafts) {
+            const container = document.getElementById('admin-draft-list');
+            if (drafts.length === 0) {
+                container.innerHTML = '<small style="color:#777">No drafts.</small>';
+                return;
+            }
+            container.innerHTML = drafts.map(n => `
+                <div class="notam-card-draft">
+                    <label style="font-size:0.75rem; color:#555;">Text Content (Running Line)</label>
+                    <textarea id="edit-draft-${n.id}" class="notam-edit-area">${n.final_notam_text}</textarea>
+                    
+                    <div style="margin-top:5px; font-size:0.75rem;">
+                         <label>Expires (UTC):</label>
+                         <input type="datetime-local" id="edit-date-${n.id}" value="${formatDateForInput(n.valid_till_utc)}" 
+                                style="border:1px solid #ccc; padding:2px; font-size:0.8rem;">
+                    </div>
+                    
+                    <div class="notam-actions">
+                        <button onclick="saveDraft(${n.id})" class="btn-xs">Save Changes</button>
+                        <button onclick="publishNotam(${n.id})" class="btn-xs btn-publish">Publish</button>
+                        <button onclick="deleteNotam(${n.id})" class="btn-xs btn-danger">Delete</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Actions
+        async function uploadNotamDraft(input) {
+            if (!input.files[0]) return;
+            const formData = new FormData();
+            formData.append('file', input.files[0]);
+
+            try {
+                const res = await fetch('/api/notam/upload', { method: 'POST', body: formData });
+                const data = await res.json();
+                if (data.success) {
+                    alert('Draft Created!');
+                    fetchNotamLists();
+                } else {
+                    alert('Error: ' + data.error);
+                }
+            } catch (e) { alert('Upload error'); }
+            input.value = '';
+        }
+
+        async function saveDraft(id) {
+            const text = document.getElementById(`edit-draft-${id}`).value;
+            const validTill = document.getElementById(`edit-date-${id}`).value;
+
+            // Convert 'T' back to space for DB
+            const formattedDate = validTill.replace('T', ' ') + ':00';
+
+            await fetch(`/api/notam/edit/${id}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ text, valid_till: formattedDate })
+            });
+            alert('Saved!');
+            fetchNotamLists();
+        }
+
+        async function publishNotam(id) {
+            if (!confirm('Publish this NOTAM? It will go live immediately.')) return;
+            await fetch(`/api/notam/publish/${id}`, { method: 'POST' });
+            fetchNotamLists();
+            fetchActiveNotam(); // Update public view
+        }
+
+        async function archiveNotam(id) {
+            if (!confirm('Archive this NOTAM? It will be removed from public view.')) return;
+            await fetch(`/api/notam/archive/${id}`, { method: 'POST' });
+            fetchNotamLists();
+            fetchActiveNotam();
+        }
+
+        async function deleteNotam(id) {
+            if (!confirm('Permanently delete?')) return;
+            await fetch(`/api/notam/delete/${id}`, { method: 'POST' });
+            fetchNotamLists();
+        }
+
+        // Initial Load for admin
+        {% if session.get('role') == 'admin' %}
+        fetchNotamLists();
+        {% endif %}
+
+        // Public View Fetcher
+        async function fetchActiveNotam() {
+            try {
+                const response = await fetch('/api/notam/active');
+                const data = await response.json();
+
+                const ticker = document.getElementById('notam-ticker');
+                const textElem = document.getElementById('notam-text');
+                const module = document.getElementById('notam-module');
+
+                if (data.active) {
+                    textElem.textContent = data.text;
+                    ticker.style.display = 'block';
+                    module.classList.add('notam-active');
+                } else {
+                    ticker.style.display = 'none';
+                    module.classList.remove('notam-active');
+                }
+            } catch (err) {
+                console.error("NOTAM fetch error:", err);
+            }
+        }
+
+        // Fetch NOTAM every 60 seconds
+        fetchActiveNotam();
+        setInterval(fetchActiveNotam, 60000);
+
+        // Auto-Refresh VABB Data
+        async function fetchLatestVABB() {
+            try {
+                const response = await fetch('/api/latest/VABB');
+                if (!response.ok) throw new Error('Data fetch failed');
+
+                const result = await response.json();
+                const data = result.data;
+
+                // Format UTC timestamp
+                const ts = new Date(data.timestamp_utc);
+                const timeStr = ts.toISOString().split('T')[1].substring(0, 5); // HH:MM
+
+                const metarHTML = `
+                    <div style="font-size: 0.9rem;">
+                        <span style="color: #666;">Time:</span> <strong>${timeStr} UTC</strong><br>
+                        <span style="color: #666;">Wind:</span> <strong>${data.wind_direction}° / ${data.wind_speed}kt</strong><br>
+                        <span style="color: #666;">Vis:</span> <strong>${data.visibility}m</strong> | 
+                        <span style="color: #666;">Temp:</span> <strong>${data.temperature}°C</strong>
+                        <div style="margin-top:5px; font-family: monospace; background:#f0f0f0; padding:5px; border-radius:4px;">
+                            ${data.raw_metar}
+                        </div>
+                    </div>
+                `;
+
+                // Update DOM
+                const metarDisplay = document.querySelector('.metar-display');
+                if (metarDisplay) {
+                    metarDisplay.innerHTML = metarHTML;
+                }
+            } catch (err) {
+                console.error("Error fetching VABB data:", err);
+            }
+        }
+
+        // Fetch immediately and then every 60 seconds
+        fetchLatestVABB();
+        setInterval(fetchLatestVABB, 60000);
+
+        // Modal Functions
+        function openModal(modalId) {
+            document.getElementById(modalId).classList.add('show');
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).classList.remove('show');
+        }
+
+        // Close on outside click
+        window.onclick = function (event) {
+            if (event.target.classList.contains('modal')) {
+                event.target.classList.remove('show');
+            }
+        }
+        // SIGMET Polling
+        async function updateSigmetStatus() {
+            try {
+                const response = await fetch('/api/sigmet/status');
+                if (!response.ok) return;
+
+                const data = await response.json();
+                const container = document.getElementById('sigmet-content');
+
+                if (!container) return;
+
+                // Keep the button, update the text above it
+                // We reconstruct the inner HTML to ensure clean state
+
+                let statusHtml = '';
+                let statusColor = '#666';
+                let cardBorder = '';
+
+                if (data.is_active) {
+                    statusColor = '#dc3545'; // Red for warning
+                    statusHtml = `
+                        <div style="background: #ffe6e6; border: 1px solid #dc3545; padding: 10px; border-radius: 4px; width: 100%; margin-bottom: 5px;">
+                            <strong style="color: #dc3545; font-size: 1rem;">⚠️ ACTIVE SIGMET</strong>
+                            <div style="margin-top: 5px; font-size: 0.9rem; color: #333;">
+                                <strong>${data.phenomenon || 'Hazard'}</strong><br>
+                                <span style="font-size: 0.85rem;">Valid: ${data.valid_from || 'Unknown'}</span>
+                            </div>
+                        </div>
+                    `;
+                } else {
+                    statusColor = '#28a745'; // Green for good
+                    statusHtml = `
+                        <div style="color: #28a745; font-weight: 500; font-size: 1rem; margin-bottom: 5px;">
+                             No Active SIGMET
+                        </div>
+                        <div style="color: #777; font-size: 0.85rem;">Mumbai FIR (VABF)</div>
+                    `;
+                }
+
+                // Helper function to format UTC time from string
+                const lastChecked = data.last_checked ? new Date(data.last_checked + 'Z').toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', timeZone: 'UTC' }) : '--:--';
+
+                container.innerHTML = `
+                    ${statusHtml}
+                    <div style="font-size: 0.75rem; color: #999; margin-bottom: 5px;">Last checked: ${lastChecked} UTC</div>
+                    <a href="https://aviationweather.gov/gfa/#sigmet" target="_blank" class="view-data-btn"
+                        style="padding: 8px 20px; font-size: 0.95rem; margin-top: 5px;">
+                        Display SIGMET ↗
+                    </a>
+                `;
+
+            } catch (e) {
+                console.error("Error fetching SIGMET status:", e);
+            }
+        }
+
+        // Initial call and periodic update
+        updateSigmetStatus();
+        setInterval(updateSigmetStatus, 60000); // Check every minute (backend updates every 5 min)
+
+    </script>
+</body>
+
+</html>

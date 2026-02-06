@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IMD Meteorological Dashboard</title>
+    <!-- Plotly.js via CDN -->
+    <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+</head>
+
+<body>
+    <header>
+        <div class="logo-container">
+            <h1>IMD Meteorological Observation Dashboard</h1>
+            <p class="subtitle">Operational Monitoring System</p>
+        </div>
+        <div class="controls">
+            <select id="stationSelect">
+                {% for code, name in stations.items() %}
+                <option value="{{ code }}" {% if code==default_station %}selected{% endif %}>{{ code }} - {{ name }}
+                </option>
+                {% endfor %}
+            </select>
+            <button id="refreshBtn">Refresh Data</button>
+        </div>
+    </header>
+
+    <div class="info-banner">
+        <div class="info-icon">ℹ️</div>
+        <div class="info-text">
+            Each graph represents complete 24-hour UTC data (00:00–23:59) for the previous three days.
+            Today's data is excluded. Incomplete days are shown with dashed lines.
+        </div>
+    </div>
+
+    <div class="status-bar" id="dataStatus">
+        Loading data...
+    </div>
+
+    <main class="dashboard-grid">
+        <!-- Temperature -->
+        <div class="chart-card">
+            <h3>Temperature (°C)</h3>
+            <div id="tempChart" class="plotly-chart"></div>
+        </div>
+
+        <!-- Dew Point -->
+        <div class="chart-card">
+            <h3>Dew Point (°C)</h3>
+            <div id="dewChart" class="plotly-chart"></div>
+        </div>
+
+        <!-- Wind Speed -->
+        <div class="chart-card">
+            <h3>Wind Speed (kt)</h3>
+            <div id="windSpeedChart" class="plotly-chart"></div>
+        </div>
+
+        <!-- Wind Direction -->
+        <div class="chart-card">
+            <h3>Wind Direction (°)</h3>
+            <div id="windDirChart" class="plotly-chart"></div>
+        </div>
+
+        <!-- Visibility -->
+        <div class="chart-card">
+            <h3>Visibility (m)</h3>
+            <div id="visChart" class="plotly-chart"></div>
+        </div>
+
+        <!-- QNH -->
+        <div class="chart-card">
+            <h3>QNH Pressure (hPa)</h3>
+            <div id="qnhChart" class="plotly-chart"></div>
+        </div>
+    </main>
+
+    <footer>
+        <p>Data Source: NOAA Aviation Weather Center | Auto-refresh: Every 5 minutes</p>
+    </footer>
+
+    <script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
+</body>
+
+</html>

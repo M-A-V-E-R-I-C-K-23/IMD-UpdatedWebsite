@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MWO Dashboard - India Aviation</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/map_new.css') }}?v=2">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/notam_styles.css') }}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=JetBrains+Mono:wght@500;700&display=swap"
+        rel="stylesheet">
+    <script src="{{ url_for('static', filename='js/d3.v7.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/topojson.min.js') }}"></script>
+</head>
+
+<body class="mwo-theme">
+    <div id="dashboard-container">
+        <!-- Sidebar Navigation -->
+        <nav id="sidebar">
+            <div class="sidebar-header">
+                <div class="mwo-logo">MWO-AERO</div>
+                <div class="system-time" id="clock">--:--:-- UTC</div>
+
+                <!-- Auth Status -->
+                <div class="auth-status-line" style="font-size: 0.75rem; margin-top: 5px; color: var(--mwo-muted);">
+                    {% if session.get('user') %}
+                    <span>{{ session.user }}</span> | <a href="{{ url_for('map.logout') }}"
+                        style="color: var(--mwo-accent);">Logout</a>
+                    {% else %}
+                    <span onclick="openModal('loginModal')"
+                        style="cursor:pointer; color: var(--mwo-accent);">Login</span>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="nav-section">
+                <!-- NOTAM Module (Ported from Sidebar) -->
+                {% if session.get('role') == 'admin' %}
+                <div class="sidebar-btn-group" style="margin-bottom: 1rem;">
+                    <button class="map-btn" onclick="openModal('newsModal')" style="width:100%; margin-bottom: 5px;">+
+                        News</button>
+                    <button class="map-btn" onclick="openModal('noticeModal')" style="width:100%;">+ Notice</button>
+                </div>
+                {% endif %}
+
+                <div class="section-title">REGIONAL MONITORING</div>
+                <ul id="airport-nav-list">
+                    <!-- Populated by JS -->
+                </ul>
+            </div>
+
+            <div class="active-alerts">
+                <div class="section-title">ACTIVE ALERTS</div>
+                <!-- Populated by JS -->
+                <div id="active-alerts-container"></div>
+            </div>
+
+            <!-- Operational Tools Section -->
+            <div class="nav-section" style="border-top: 1px solid var(--mwo-border);">
+                <div class="section-title">OPERATIONAL TOOLS</div>
+                <a href="https://121.240.10.8:8000" target="_blank" class="sidebar-link"
+                    style="display:block; color:var(--mwo-muted); font-size:0.8rem; margin-bottom:5px;">Aerodrome ↗</a>
+                <a href="https://olbs.amsschennai.gov.in/nsweb/FlightBriefing/#showLogin" target="_blank"
+                    class="sidebar-link"
+                    style="display:block; color:var(--mwo-muted); font-size:0.8rem; margin-bottom:5px;">OLBS Chennai
+                    ↗</a>
+            </div>
+        </nav>
+
+        <!-- Main Content Area -->
+        <main id="monitor-area"
+            style="flex: 1; display: flex; flex-direction: column; overflow: hidden; position: relative;">
+            <header id="main-header">
+                <div class="header-left">
+                    <h1>MWO SYSTEM <span class="divider">/</span> REGIONAL MET MAP</h1>
+                    <p>MAHARASHTRA & GOA FLIGHT INFORMATION REGION (FIR)</p>
+                </div>
+                <div class="header-right">
+                    <div class="status-indicator online">
+                        <span class="dot"></span> LIVE DATA
+                    </div>
+                </div>
+            </header>
+
+            <div id="map-control-center">
+                <!-- Map Wrapper -->
+                <div id="map-viewport">
+                    <svg id="main-map"></svg>
+
+                    <div id="map-controls">
+                        <button class="map-btn" id="zoom-in">+</button>
+                        <button class="map-btn" id="zoom-out">-</button>
+                        <button class="map-btn" id="zoom-reset">RESET VIEW</button>
+                        <!-- <button class="map-btn" id="toggle-grid">GRID</button> -->
+                    </div>
+
+                    <div id="scale-bar-container">
+                        <div id="scale-bar-line"></div>
+                        <div id="scale-bar-text">500 km</div>
+                    </div>
+
+                    <!-- Inset Map (Modernized) -->
+                    <div id="mwo-inset-container">
+                        <div class="inset-tab">MH-GOA DETAIL</div>
+                        <svg id="inset-map"></svg>
+                    </div>
+                </div>
+
+                <!-- Info Panel (Right Side) -->
+                <aside id="info-panel">
+                    <div id="selected-airport-card" class="mwo-panel">
+                        <div class="panel-header">SELECTED AERODROME</div>
+                        <div class="panel-body">
+                            <div id="no-selection-msg">SELECT AN AIRPORT ON THE MAP</div>
+                            <div id="airport-details" class="hidden">
+                                <h2 id="det-name">---</h2>
+                                <h3 id="det-code">----</h3>
+                                <hr style="border-color: var(--mwo-border); margin: 10px 0;">
+                                <div class="metar-display" id="det-metar">
+                                    Loading METAR...
+                                </div>
+                                <div class="data-grid">
+                                    <div class="data-item">
+                                        <span class="data-label">WIND</span>
+                                        <span class="data-value" id="det-wind">--</span>
+                                    </div>
+                                    <div class="data-item">
+                                        <span class="data-label">VIS</span>
+                                        <span class="data-value" id="det-vis">--</span>
+                                    </div>
+                                </div>
+                                <div style="margin-top: 15px; text-align: right;">
+                                    <button id="btn-view-dashboard" class="map-btn" style="width: 100%;">OPEN
+                                        DASHBOARD</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="legend-panel" class="mwo-panel">
+                        <div class="panel-header">MAP LEGEND</div>
+                        <div class="panel-body">
+                            <div class="legend-item">
+                                <svg class="pin-icon blue-pin" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"
+                                        style="fill: #2563eb;" />
+                                </svg>
+                                <span>NORMAL OPERATIONS</span>
+                            </div>
+                            <div class="legend-item">
+                                <svg class="pin-icon red-pin" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"
+                                        style="fill: #ef4444;" />
+                                </svg>
+                                <span>ACTIVE WARNING</span>
+                            </div>
+                            <div class="legend-item">
+                                <div class="box-mwo highlight"></div>
+                                <span>FIR PRIORITY Area</span>
+                            </div>
+                        </div>
+                    </div>
+                </aside>
+            </div>
+        </main>
+    </div>
+
+    <!-- Modals (Borrowed from map.html) -->
+    <!-- Login Modal -->
+    <div id="loginModal" class="modal">
+        <div class="modal-content"
+            style="background: var(--mwo-bg); border: 1px solid var(--mwo-accent); color: var(--mwo-text);">
+            <span class="close-modal" onclick="closeModal('loginModal')">&times;</span>
+            <h3 style="margin-bottom:15px; color:var(--mwo-text);">Internal Login</h3>
+            <form action="{{ url_for('map.login') }}" method="POST" class="modal-form">
+                <div class="form-group">
+                    <label>Username</label>
+                    <input type="text" name="username" required placeholder="User or Admin">
+                </div>
+                <div class="form-group">
+                    <label>Password</label>
+                    <input type="password" name="password" placeholder="Any password (dev mode)">
+                </div>
+                <button type="submit" class="map-btn" style="width:100%">Login</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- News Modal -->
+    <div id="newsModal" class="modal">
+        <div class="modal-content"
+            style="background: var(--mwo-bg); border: 1px solid var(--mwo-accent); color: var(--mwo-text);">
+            <span class="close-modal" onclick="closeModal('newsModal')">&times;</span>
+            <h3 style="margin-bottom:15px; color:var(--mwo-text);">Post News (Admin)</h3>
+            <form action="{{ url_for('map.upload_news') }}" method="POST" enctype="multipart/form-data"
+                class="modal-form">
+                <div class="form-group">
+                    <label>Title</label>
+                    <input type="text" name="title" required>
+                </div>
+                <div class="form-group">
+                    <label>Description</label>
+                    <textarea name="description" rows="3"></textarea>
+                </div>
+                <div class="form-group">
+                    <label>File (PDF/Image/Doc)</label>
+                    <input type="file" name="file" required>
+                </div>
+                <button type="submit" class="map-btn" style="width:100%">Upload News</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Notice Modal -->
+    <div id="noticeModal" class="modal">
+        <div class="modal-content"
+            style="background: var(--mwo-bg); border: 1px solid var(--mwo-accent); color: var(--mwo-text);">
+            <span class="close-modal" onclick="closeModal('noticeModal')">&times;</span>
+            <h3 style="margin-bottom:15px; color:var(--mwo-text);">Post Notice</h3>
+            <form action="{{ url_for('map.post_notice') }}" method="POST" enctype="multipart/form-data"
+                class="modal-form">
+                <div class="form-group">
+                    <label>Title</label>
+                    <input type="text" name="title" required>
+                </div>
+                <div class="form-group">
+                    <label>Message</label>
+                    <textarea name="message" rows="3"></textarea>
+                </div>
+                <div class="form-group">
+                    <label>Attachment (Optional)</label>
+                    <input type="file" name="file">
+                </div>
+                <button type="submit" class="map-btn" style="width:100%">Post Notice</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Setup Script -->
+    <script>
+        // Error Handler
+        window.onerror = function (msg, url, line, col, error) {
+            alert("Error: " + msg + "\nLine: " + line);
+        };
+
+        window.stationData = {
+            config: {
+                geojsonUrl: "{{ url_for('static', filename='geojson/india_state.geojson') }}"
+            },
+            stations: [
+                {% for code, coords in station_coords.items() %}
+        {
+            icao: "{{ code }}",
+                name: "{{ stations[code] }}",
+                    lat: { { coords[0] } },
+            long: { { coords[1] } },
+            // Mock data or fetch later
+            wind: "--",
+                vis: "--"
+        },
+        {% endfor %}
+            ],
+        user: {
+            name: "{{ session.get('user') }}",
+                role: "{{ session.get('role') }}"
+        }
+        };
+
+        // Modal Helpers (Global)
+        function openModal(id) {
+            document.getElementById(id).classList.add('show');
+        }
+        function closeModal(id) {
+            document.getElementById(id).classList.remove('show');
+        }
+        window.onclick = function (event) {
+            if (event.target.classList.contains('modal')) {
+                event.target.classList.remove('show');
+            }
+        }
+    </script>
+
+    <script src="{{ url_for('static', filename='js/map_new.js') }}?v=2"></script>
+    <script src="{{ url_for('static', filename='js/map_adapter.js') }}?v=2"></script>
+</body>
+
+</html>

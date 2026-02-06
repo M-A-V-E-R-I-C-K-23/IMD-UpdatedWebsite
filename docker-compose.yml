@@ -1,0 +1,21 @@
+version: '3.8'
+
+services:
+  backend:
+    build: ./backend
+    container_name: mwo-backend
+    volumes:
+      - ./backend/uploads:/app/uploads
+      - ./backend/met_data.db:/app/met_data.db
+    environment:
+      - FLASK_ENV=production
+    restart: always
+
+  frontend:
+    build: ./frontend
+    container_name: mwo-frontend
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+    restart: always

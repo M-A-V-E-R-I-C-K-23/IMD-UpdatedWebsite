@@ -1,0 +1,1570 @@
+/* Map Page Styles */
+:root {
+    --primary-color: #0056b3;
+    --secondary-color: #f0f4f8;
+    --text-color: #333;
+    --border-color: #ddd;
+    --card-bg: #fff;
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: 'Roboto', sans-serif;
+    background-color: var(--secondary-color);
+    color: var(--text-color);
+    overflow-x: hidden;
+}
+
+/* Header */
+.map-header {
+    background: linear-gradient(135deg, #0056b3 0%, #003d82 100%);
+    color: white;
+    padding: 1.5rem 2rem;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    position: relative;
+    z-index: 1000;
+}
+
+.header-content {
+    max-width: 1400px;
+    margin: 0 auto;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.header-right {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 5px;
+}
+
+.utc-clock {
+    background: rgba(255, 255, 255, 0.2);
+    padding: 0.4rem 0.8rem;
+    border-radius: 4px;
+    font-weight: 700;
+    font-size: 1rem;
+    letter-spacing: 0.5px;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    text-align: right;
+}
+
+.admin-section {
+    font-size: 0.85rem;
+    margin-right: 2px;
+}
+
+.admin-link {
+    color: white;
+    text-decoration: none;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    padding: 2px 5px;
+    border-radius: 4px;
+}
+
+.admin-link:hover {
+    background-color: rgba(255, 255, 255, 0.2);
+    color: #fff;
+    text-decoration: none;
+}
+
+.admin-badge {
+    background: rgba(0, 0, 0, 0.2);
+    padding: 2px 5px;
+    border-radius: 4px;
+}
+
+/* Modals */
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 2000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+}
+
+.modal.show {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.modal-content {
+    background-color: white;
+    padding: 20px;
+    border-radius: 8px;
+    width: 300px;
+    position: relative;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+}
+
+.close-btn {
+    position: absolute;
+    top: 10px;
+    right: 15px;
+    font-size: 1.5rem;
+    cursor: pointer;
+    color: #666;
+}
+
+.modal h3 {
+    margin-bottom: 15px;
+    color: #333;
+}
+
+.modal-input {
+    width: 100%;
+    padding: 8px;
+    margin-bottom: 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+}
+
+.modal-submit-btn {
+    width: 100%;
+    padding: 10px;
+    background-color: var(--primary-color);
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+.modal-submit-btn:hover {
+    background-color: #004494;
+}
+
+.logo-section h1 {
+    font-size: 1.6rem;
+    font-weight: 700;
+    margin-bottom: 0px;
+    letter-spacing: 0.5px;
+    line-height: 1.1;
+}
+
+.logo-section h2 {
+    font-size: 1.1rem;
+    font-weight: 400;
+    margin-bottom: 0;
+    color: #e0e0e0;
+    opacity: 0.95;
+    letter-spacing: 0.3px;
+}
+
+.subtitle {
+    font-size: 0.9rem;
+    opacity: 0.8;
+}
+
+/* Header Layout */
+.header-left {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.logo-container {
+    background: white;
+    padding: 3px;
+    border-radius: 4px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.imd-logo {
+    height: 48px;
+    /* Slightly smaller to fit in padded container */
+    width: auto;
+    /* Clean crop to remove excess internal whitespace */
+    clip-path: inset(5% 15% 5% 15%);
+    display: block;
+}
+
+/* Map Container */
+/* Dashboard Layout */
+/* Dashboard Layout */
+.dashboard-container {
+    display: flex;
+    height: calc(75vh - 60px);
+    /* Fill most of the screen, leaving space for bottom panel */
+    min-height: 400px;
+    background-color: #f0f2f5;
+    padding: 10px;
+    gap: 10px;
+}
+
+/* Sidebars */
+.sidebar {
+    width: 250px;
+    background: white;
+    padding: 15px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.sidebar-section {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.sidebar-title {
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: #666;
+    text-transform: uppercase;
+    margin-bottom: 5px;
+    border-bottom: 2px solid #eee;
+    padding-bottom: 5px;
+}
+
+/* NOTAM Module */
+.notam-module {
+    margin-top: 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    overflow: hidden;
+    background: #fff;
+    transition: all 0.3s ease;
+}
+
+.notam-module.notam-active {
+    border-color: #ffc107;
+    box-shadow: 0 0 5px rgba(255, 193, 7, 0.5);
+    background-color: #fff9e6;
+    /* Light yellow bg when active */
+}
+
+.notam-header {
+    background-color: #e0e0e0;
+    padding: 8px 10px;
+    font-weight: 700;
+    font-size: 0.9rem;
+    color: #333;
+    text-align: center;
+}
+
+.notam-module.notam-active .notam-header {
+    background-color: #ffc107;
+    /* Aviation Amber */
+    color: #000;
+}
+
+/* Admin Controls in Sidebar */
+.notam-admin-panel {
+    padding: 10px;
+    border-bottom: 1px solid #eee;
+    background: #f8f9fa;
+    text-align: center;
+}
+
+.notam-action-btn {
+    width: 100%;
+    background-color: #ffc107;
+    color: #000;
+    border: none;
+    padding: 6px 10px;
+    font-size: 0.85rem;
+    font-weight: bold;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.notam-action-btn:hover {
+    background-color: #e0a800;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.notam-preview-box {
+    margin-top: 8px;
+    text-align: left;
+    background: #333;
+    color: #0f0;
+    /* Terminal green text */
+    padding: 5px;
+    font-family: monospace;
+    font-size: 0.75rem;
+    border-radius: 2px;
+    word-wrap: break-word;
+}
+
+.notam-preview-box small {
+    color: #aaa;
+    display: block;
+    margin-bottom: 2px;
+}
+
+.notam-delete-btn {
+    width: 100%;
+    margin-top: 8px;
+    background-color: transparent;
+    color: #d9534f;
+    /* Bootstrap danger red */
+    border: 1px solid #d9534f;
+    padding: 4px 10px;
+    font-size: 0.8rem;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.notam-delete-btn:hover {
+    background-color: #d9534f;
+    color: white;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(217, 83, 79, 0.3);
+}
+
+/* NOTAM Ticker Styles */
+.notam-ticker-container {
+    width: 100%;
+    background-color: #ffc107;
+    /* Aviation Yellow/Amber */
+    overflow: hidden;
+    height: 30px;
+    display: flex;
+    /* Centering text vertically */
+    align-items: center;
+    border-top: 1px solid #e0a800;
+}
+
+.notam-ticker-wrap {
+    width: 100%;
+    overflow: hidden;
+    padding-left: 100%;
+    /* Start off-screen */
+    box-sizing: content-box;
+}
+
+.notam-ticker-item {
+    display: inline-block;
+    white-space: nowrap;
+    padding-right: 100%;
+    /* Ensure loop spacing */
+    box-sizing: content-box;
+    animation: ticker 15s linear infinite;
+    font-weight: 700;
+    color: black;
+    font-family: monospace;
+    /* Aviation feel */
+}
+
+@keyframes ticker {
+    0% {
+        transform: translate3d(0, 0, 0);
+    }
+
+    100% {
+        transform: translate3d(-100%, 0, 0);
+    }
+}
+
+.notam-upload-btn {
+    background: none;
+    border: 1px solid #ccc;
+    font-size: 0.75rem;
+    padding: 2px 5px;
+    border-radius: 4px;
+    cursor: pointer;
+    color: #555;
+    background-color: #eee;
+}
+
+.notam-upload-btn:hover {
+    background-color: #ddd;
+    color: #333;
+}
+
+/* Left Sidebar specific buttons */
+.action-btn {
+    padding: 10px;
+    border: none;
+    border-radius: 4px;
+    font-weight: 500;
+    text-align: left;
+    cursor: pointer;
+    background: white;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    transition: transform 0.2s ease, background-color 0.2s ease, color 0.2s ease;
+    will-change: transform;
+}
+
+.action-btn:hover {
+    background-color: #e3f2fd;
+    /* Light Blue tint */
+    color: #0d47a1;
+    /* Darker Text */
+    transform: translateX(5px);
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15);
+}
+
+.warning-btn {
+    border-left: 4px solid #dc3545;
+    color: #dc3545;
+}
+
+.notam-btn {
+    border-left: 4px solid #ffc107;
+    color: #856404;
+    background-color: #fff3cd33;
+}
+
+.sidebar-btn {
+    padding: 10px;
+    text-decoration: none;
+    color: #333;
+    font-size: 0.9rem;
+    border: 1px solid #eee;
+    border-left: 4px solid #0056b3;
+    background: white;
+    border-radius: 4px;
+    display: block;
+    transition: transform 0.2s ease, background-color 0.2s ease, color 0.2s ease;
+    will-change: transform;
+}
+
+.sidebar-btn:hover {
+    background-color: #e3f2fd;
+    color: #0d47a1;
+    transform: translateX(5px);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+/* Restore modal styles that were replaced by accident if any, or ensuring they are present */
+/* Modals need to stay! Re-adding them here if the previous chunk wiped them. */
+/* Modals */
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 2000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+}
+
+.modal.show {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.modal-content {
+    background-color: white;
+    padding: 20px;
+    border-radius: 8px;
+    width: 300px;
+    position: relative;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+}
+
+.close-btn {
+    position: absolute;
+    top: 10px;
+    right: 15px;
+    font-size: 1.5rem;
+    cursor: pointer;
+    color: #666;
+}
+
+.modal h3 {
+    margin-bottom: 15px;
+    color: #333;
+}
+
+.modal-input {
+    width: 100%;
+    padding: 8px;
+    margin-bottom: 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+}
+
+.modal-submit-btn {
+    width: 100%;
+    padding: 10px;
+    background-color: var(--primary-color);
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+.modal-submit-btn:hover {
+    background-color: #004494;
+}
+
+.sidebar-btn.disabled {
+    border-left-color: #ccc;
+    color: #999;
+    cursor: not-allowed;
+    background: #f9f9f9;
+}
+
+/* Right Sidebar specific links */
+.sidebar-link {
+    padding: 10px 15px;
+    background: #f8f9fa;
+    border-radius: 0 20px 20px 0;
+    text-decoration: none;
+    color: #333;
+    font-size: 0.9rem;
+    border-left: 4px solid #0056b3;
+    margin-bottom: 5px;
+    display: block;
+    transition: transform 0.2s ease, background-color 0.2s ease, color 0.2s ease;
+    will-change: transform;
+}
+
+.sidebar-link:hover {
+    background: #e3f2fd;
+    color: #0d47a1;
+    transform: translateX(5px);
+    box-shadow: 1px 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.olbs-btn {
+    padding: 10px 15px;
+    background: #f8f9fa;
+    border-radius: 0 20px 20px 0;
+    text-decoration: none;
+    color: #333;
+    font-size: 0.9rem;
+    border-left: 4px solid #0056b3;
+    /* Match sidebar theme */
+    margin-bottom: 5px;
+    display: block;
+    transition: transform 0.2s ease, background-color 0.2s ease, color 0.2s ease;
+    will-change: transform;
+}
+
+.olbs-btn:hover {
+    background: #e3f2fd;
+    color: #0d47a1;
+    transform: translateX(5px);
+    box-shadow: 1px 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+/* Center Map Panel */
+.center-panel {
+    flex: 1;
+    position: relative;
+    background: #e0e0e0;
+    border-radius: 4px;
+    overflow: hidden;
+    box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+.map-wrapper {
+    width: 100%;
+    height: 100%;
+    position: relative;
+}
+
+#map {
+    width: 100%;
+    height: 100%;
+    background-color: #aad3df;
+}
+
+/* Map Overlay */
+.map-overlay {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    z-index: 1000;
+}
+
+.instruction-card {
+    background: white;
+    padding: 10px 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.instruction-icon {
+    font-size: 1.5rem;
+    color: #dc3545;
+}
+
+/* Bottom Info Panel */
+.bottom-info-container {
+    display: flex;
+    gap: 10px;
+    padding: 0 10px 10px 10px;
+    height: 25vh;
+    /* Revert to smaller height (approx 25% of screen) */
+    min-height: 200px;
+}
+
+.info-card {
+    flex: 1;
+    background: white;
+    border: 1px solid #ddd;
+    display: flex;
+    flex-direction: column;
+}
+
+.card-header {
+    background: #f8f9fa;
+    padding: 8px 15px;
+    font-weight: 700;
+    font-size: 0.85rem;
+    color: #0056b3;
+    border-bottom: 1px solid #ddd;
+    text-transform: uppercase;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.header-link-btn {
+    font-size: 0.75rem;
+    color: white;
+    background-color: #0056b3;
+    padding: 2px 8px;
+    border-radius: 4px;
+    text-decoration: none;
+    text-transform: none;
+}
+
+.header-link-btn:hover {
+    background-color: #004494;
+}
+
+.card-content {
+    flex: 1;
+    padding: 10px;
+    overflow: auto;
+    font-size: 0.9rem;
+    position: relative;
+}
+
+/* Bottom Cards Uniform Height */
+.bottom-card {
+    min-height: 180px;
+    max-height: 180px;
+    display: flex;
+    flex-direction: column;
+}
+
+.rvr-card {
+    flex: 1;
+    /* Make it equal width to others if needed, or keep flex-grow */
+}
+
+/* Compact RVR Content */
+.rvr-content-compact {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    gap: 15px;
+    padding: 10px;
+}
+
+.rvr-status-text {
+    font-size: 0.95rem;
+    color: #555;
+    font-weight: 500;
+}
+
+.rvr-btn {
+    padding: 8px 20px;
+    font-size: 0.9rem;
+    background-color: #0056b3;
+    color: white;
+    text-decoration: none;
+    border-radius: 4px;
+    transition: background-color 0.2s;
+}
+
+.rvr-btn:hover {
+    background-color: #004494;
+    transform: none;
+    /* Override potential view-data-btn transform if desired, or keep it */
+    box-shadow: none;
+}
+
+
+.rvr-fallback {
+    display: none;
+    /* Hidden by default, useful if using JS to detect failure */
+    /* Position absolute logic could be added if we were overlaying */
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    text-align: center;
+}
+
+.placeholder-content {
+    background: #eee;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #aaa;
+}
+
+/* Sidebar Scrolling */
+.left-sidebar {
+    overflow-y: auto;
+    /* Ensure it scrolls independently */
+    max-height: 100%;
+}
+
+/* Sidebar Content Boards */
+.news-sidebar-section,
+.notice-sidebar-section {
+    background: white;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    margin-bottom: 10px;
+    display: flex;
+    flex-direction: column;
+    max-height: 300px;
+    /* Limit height of each section */
+}
+
+/* Header with Add Button */
+.board-header-sidebar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: #f8f9fa;
+    padding: 8px 10px;
+    margin: 0;
+    font-size: 0.8rem;
+    color: #444;
+}
+
+.sidebar-add-btn {
+    cursor: pointer;
+    font-weight: bold;
+    font-size: 1.2rem;
+    color: #0056b3;
+    line-height: 1;
+}
+
+.sidebar-add-btn:hover {
+    color: #003d82;
+}
+
+/* Scrollable Content Area */
+.sidebar-content-scroll {
+    overflow-y: auto;
+    flex: 1;
+    padding: 5px;
+}
+
+/* Sidebar Items */
+.sidebar-item {
+    border-bottom: 1px solid #eee;
+    padding: 8px 5px;
+    font-size: 0.85rem;
+}
+
+.sidebar-item:last-child {
+    border-bottom: none;
+}
+
+.sidebar-item-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.75rem;
+    color: #888;
+    margin-bottom: 2px;
+}
+
+.sidebar-item-title {
+    font-weight: 500;
+    color: #333;
+    margin-bottom: 2px;
+}
+
+.sidebar-item-title-link {
+    font-weight: 500;
+    color: #0056b3;
+    text-decoration: none;
+    display: block;
+    margin-bottom: 2px;
+}
+
+.sidebar-item-title-link:hover {
+    text-decoration: underline;
+}
+
+.sidebar-item-desc {
+    color: #555;
+    font-size: 0.8rem;
+    line-height: 1.3;
+}
+
+.sidebar-attachment-link {
+    font-size: 0.75rem;
+    color: #0056b3;
+    text-decoration: none;
+    display: block;
+    margin-top: 3px;
+}
+
+.sidebar-delete-btn {
+    background: none;
+    border: none;
+    color: #dc3545;
+    font-weight: bold;
+    font-size: 1.1rem;
+    cursor: pointer;
+    padding: 0 4px;
+    line-height: 1;
+}
+
+.sidebar-delete-btn:hover {
+    color: #a71d2a;
+}
+
+.empty-sidebar-msg {
+    text-align: center;
+    color: #999;
+    font-size: 0.8rem;
+    padding: 15px;
+}
+
+/* Footer Adjustments */
+.map-footer {
+    padding: 5px;
+    font-size: 0.75rem;
+    background: #333;
+    color: #fff;
+}
+
+/* Custom Airport Markers */
+.airport-marker {
+    position: relative;
+}
+
+.marker-pin {
+    width: 30px;
+    height: 30px;
+    border-radius: 50% 50% 50% 0;
+    background: linear-gradient(135deg, #0056b3 0%, #007bff 100%);
+    position: absolute;
+    transform: rotate(-45deg);
+    left: 50%;
+    top: 50%;
+    margin: -20px 0 0 -15px;
+    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.3);
+    border: 3px solid white;
+    cursor: pointer;
+    transition: transform 0.2s ease;
+}
+
+.marker-pin:hover {
+    transform: rotate(-45deg) scale(1.1);
+    z-index: 1000;
+}
+
+.marker-pin::after {
+    content: '';
+    width: 10px;
+    height: 10px;
+    margin: 7px 0 0 7px;
+    background: white;
+    position: absolute;
+    border-radius: 50%;
+}
+
+.marker-pulse {
+    background: rgba(0, 123, 255, 0.3);
+    border-radius: 50%;
+    height: 40px;
+    width: 40px;
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    margin: -20px 0 0 -20px;
+    transform: rotateX(55deg);
+    z-index: -2;
+    animation: pulsate 1.5s ease-out infinite;
+}
+
+@keyframes pulsate {
+    0% {
+        transform: scale(0.1, 0.1);
+        opacity: 0;
+    }
+
+    50% {
+        opacity: 1;
+    }
+
+    100% {
+        transform: scale(1.2, 1.2);
+        opacity: 0;
+    }
+}
+
+/* Airport Labels */
+.airport-label {
+    background-color: rgba(255, 255, 255, 0.85);
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    border-radius: 4px;
+    padding: 2px 6px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+    font-family: 'Roboto', sans-serif;
+    font-size: 12px;
+    font-weight: 600;
+    color: #333;
+    white-space: nowrap;
+    pointer-events: auto;
+    /* Allow clicking on label */
+    cursor: pointer;
+}
+
+.airport-label::before {
+    border-right-color: rgba(255, 255, 255, 0.85);
+}
+
+/* Hide labels at low zoom (controlled by JS adding class to map) */
+.map-low-zoom .airport-label {
+    display: none;
+}
+
+/* Popup Styling */
+.leaflet-popup-content-wrapper {
+    border-radius: 8px;
+    padding: 0;
+}
+
+.airport-popup {
+    padding: 1rem;
+    text-align: center;
+}
+
+.airport-popup h4 {
+    font-size: 1.1rem;
+    color: var(--primary-color);
+    margin-bottom: 0.25rem;
+}
+
+.airport-popup p {
+    font-size: 0.9rem;
+    color: #666;
+    margin-bottom: 0.75rem;
+}
+
+.view-data-btn {
+    display: inline-block;
+    background: linear-gradient(135deg, #0056b3 0%, #007bff 100%);
+    color: white;
+    padding: 0.5rem 1rem;
+    border-radius: 6px;
+    text-decoration: none;
+    font-weight: 500;
+    font-size: 0.9rem;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.view-data-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 86, 179, 0.3);
+}
+
+/* OLBS Container */
+.olbs-container {
+    display: flex;
+    gap: 10px;
+    background: #fff;
+}
+
+.olbs-btn {
+    flex: 1;
+    text-align: center;
+    background: #f8f9fa;
+    border: none;
+    padding: 10px 15px;
+    border-radius: 4px;
+    text-decoration: none;
+    color: #333;
+    font-weight: 500;
+    font-size: 0.9rem;
+    border-left: 4px solid #17a2b8;
+    transition: all 0.2s;
+}
+
+.olbs-btn:hover {
+    background: #e9ecef;
+    padding-left: 20px;
+}
+
+.map-footer p {
+    margin: 0;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .map-header {
+        padding: 1rem;
+    }
+
+    .logo-section h1 {
+        font-size: 1.3rem;
+    }
+
+    .subtitle {
+        font-size: 0.85rem;
+    }
+
+    .map-overlay {
+        top: 10px;
+        right: 10px;
+        left: 10px;
+        display: none;
+        /* Hide instructions on small screens to save space */
+    }
+
+    .instruction-card {
+        max-width: 100%;
+    }
+
+    .map-container {
+        height: calc(100vh - 120px);
+    }
+}
+
+/* Operational Quick Links Section */
+.quick-links-section {
+    background-color: #f9f9f9;
+    padding: 2rem 1rem;
+    border-top: 1px solid #e0e0e0;
+}
+
+.section-title {
+    text-align: center;
+    font-size: 1.5rem;
+    color: var(--primary-color);
+    margin-bottom: 2rem;
+    font-weight: 500;
+}
+
+.links-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 1.5rem;
+    margin: 0 auto;
+    max-width: 1400px;
+}
+
+.link-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background-color: white;
+    padding: 1.5rem;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    text-decoration: none;
+    color: var(--text-color);
+    transition: transform 0.2s, box-shadow 0.2s;
+    border: 1px solid #eee;
+    height: 100%;
+    text-align: center;
+}
+
+.link-card:not(.disabled):hover {
+    transform: translateY(-5px);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    border-color: var(--primary-color);
+}
+
+.link-icon {
+    font-size: 2rem;
+    margin-bottom: 0.75rem;
+}
+
+.link-text {
+    font-size: 0.95rem;
+    font-weight: 500;
+    line-height: 1.3;
+}
+
+.link-card.disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    background-color: #f5f5f5;
+    border: none;
+}
+
+/* Responsive adjustments for quick links */
+@media (max-width: 600px) {
+    .links-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1rem;
+    }
+
+    .link-card {
+        padding: 1rem;
+    }
+
+    .link-icon {
+        font-size: 1.5rem;
+    }
+
+    .link-text {
+        font-size: 0.85rem;
+    }
+}
+
+/* Content Boards (News & Notices) */
+.content-boards-container {
+    display: flex;
+    gap: 10px;
+    padding: 0 10px 10px 10px;
+    height: 35vh;
+    /* Fixed height for consistency */
+    min-height: 250px;
+}
+
+.board-section {
+    flex: 1;
+    background: white;
+    border: 1px solid #ddd;
+    display: flex;
+    flex-direction: column;
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.board-header {
+    background: #f1f3f5;
+    /* Slightly darker than card header */
+    padding: 10px 15px;
+    font-weight: 700;
+    font-size: 0.9rem;
+    color: #333;
+    border-bottom: 1px solid #ddd;
+    text-transform: uppercase;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.board-content {
+    flex: 1;
+    overflow-y: auto;
+    padding: 10px;
+    background-color: #fcfcfc;
+}
+
+.board-item {
+    background: white;
+    border: 1px solid #eee;
+    padding: 10px;
+    margin-bottom: 8px;
+    border-radius: 4px;
+    transition: box-shadow 0.2s;
+}
+
+.board-item:hover {
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+}
+
+.item-title {
+    font-weight: 500;
+    color: #0056b3;
+    display: block;
+    margin-bottom: 4px;
+    text-decoration: none;
+}
+
+.item-title:hover {
+    text-decoration: underline;
+}
+
+.item-desc {
+    font-size: 0.85rem;
+    color: #555;
+    margin-bottom: 5px;
+    line-height: 1.4;
+}
+
+.item-meta {
+    font-size: 0.75rem;
+    color: #999;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 5px;
+}
+
+.upload-btn {
+    background: #28a745;
+    color: white;
+    border: none;
+    padding: 4px 10px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.8rem;
+    font-weight: 500;
+}
+
+.upload-btn:hover {
+    background: #218838;
+}
+
+.delete-btn {
+    background: none;
+    border: none;
+    color: #dc3545;
+    font-size: 0.75rem;
+    cursor: pointer;
+    padding: 0;
+    text-decoration: underline;
+}
+
+.delete-btn:hover {
+    color: #a71d2a;
+}
+
+/* General Typography Refinements */
+h1,
+h2,
+h3,
+h4 {
+    margin: 0;
+}
+
+.card-header {
+    font-size: 0.9rem;
+    /* Normalized with board header */
+    letter-spacing: 0.5px;
+}
+
+.view-data-btn {
+    font-family: 'Roboto', sans-serif;
+    letter-spacing: 0.3px;
+}
+
+/* Secondary Navbar */
+.secondary-navbar {
+    background-color: white;
+    height: 48px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    position: relative;
+    z-index: 900;
+}
+
+.nav-content {
+    max-width: 1400px;
+    margin: 0 auto;
+    height: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 20px;
+}
+
+.nav-left {
+    display: flex;
+    align-items: center;
+    height: 100%;
+}
+
+.nav-menu {
+    list-style: none;
+    display: flex;
+    gap: 20px;
+    height: 100%;
+    margin: 0;
+    padding: 0;
+}
+
+.nav-item {
+    height: 100%;
+    display: flex;
+    align-items: center;
+    position: relative;
+}
+
+.nav-link {
+    text-decoration: none;
+    color: #333;
+    font-weight: 500;
+    font-size: 0.95rem;
+    padding: 0 10px;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    transition: color 0.2s;
+    cursor: pointer;
+}
+
+.nav-item:hover .nav-link {
+    color: var(--primary-color);
+    background-color: #f8f9fa;
+}
+
+/* Dropdown */
+.dropdown-content {
+    display: none;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    background: white;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    border-radius: 0 0 4px 4px;
+    min-width: 280px;
+    z-index: 1000;
+    border-top: 3px solid var(--primary-color);
+}
+
+.nav-item:hover .dropdown-content {
+    display: block;
+}
+
+/* Head Card */
+.head-card {
+    padding: 15px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: #f0f4f8;
+}
+
+.head-img {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid white;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.head-info {
+    display: flex;
+    flex-direction: column;
+}
+
+.head-name {
+    font-weight: 700;
+    font-size: 0.9rem;
+    color: var(--primary-color);
+}
+
+.head-designation {
+    font-size: 0.75rem;
+    color: #666;
+}
+
+.dropdown-divider {
+    border: 0;
+    border-top: 1px solid #eee;
+    margin: 0;
+}
+
+.scrollable-list {
+    max-height: 250px;
+    overflow-y: auto;
+    padding: 5px 0;
+}
+
+.list-title {
+    padding: 8px 15px 5px 15px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: #888;
+    text-transform: uppercase;
+}
+
+.employee-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.employee-list li {
+    padding: 6px 15px;
+    font-size: 0.9rem;
+    color: #444;
+}
+
+.employee-list li:hover {
+    background: #f8f9fa;
+    color: var(--primary-color);
+}
+
+/* Simple List Dropdown */
+.simple-list {
+    padding: 8px 0;
+    min-width: 220px;
+}
+
+.dropdown-item {
+    display: block;
+    padding: 8px 15px;
+    text-decoration: none;
+    color: #333;
+    font-size: 0.9rem;
+    transition: background 0.2s;
+}
+
+.dropdown-item:hover {
+    background: #f0f4f8;
+    color: var(--primary-color);
+}
+
+/* Admin Button */
+.admin-login-btn {
+    background: var(--primary-color);
+    color: white;
+    padding: 8px 16px;
+    border-radius: 4px;
+    text-decoration: none;
+    font-size: 0.9rem;
+    font-weight: 500;
+    transition: background 0.2s;
+}
+
+.admin-login-btn:hover {
+    background: #004494;
+    text-decoration: none;
+}
+
+/* Mobile Toggle */
+.menu-toggle {
+    display: none;
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    cursor: pointer;
+    color: #333;
+}
+
+.mobile-menu-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 2000;
+}
+
+.mobile-menu-overlay.show {
+    display: flex;
+}
+
+.mobile-menu-content {
+    background: white;
+    width: 250px;
+    height: 100%;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
+}
+
+.close-mobile-menu {
+    position: absolute;
+    top: 10px;
+    right: 20px;
+    /* Adjusted to be visible outside content or inside? Inside logic. */
+    /* Actually better put inside content */
+    left: 270px;
+    color: white;
+    font-size: 2rem;
+    cursor: pointer;
+}
+
+.mobile-link {
+    text-decoration: none;
+    color: #333;
+    font-size: 1.1rem;
+    padding: 10px;
+    border-bottom: 1px solid #eee;
+}
+
+.admin-mobile-link {
+    color: var(--primary-color);
+    font-weight: bold;
+}
+
+/* Responsive Breakpoint */
+@media (max-width: 768px) {
+    .nav-menu {
+        display: none;
+    }
+
+    .menu-toggle {
+        display: block;
+    }
+
+    .nav-right {
+        display: none;
+    }
+}
+
+/* Delete Button Styling */
+.sidebar-delete-btn {
+    font-weight: bold;
+    cursor: pointer;
+    background: #dc3545;
+    color: white;
+    border-radius: 50%;
+    width: 20px;
+    height: 20px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    margin-left: 5px;
+    transition: background 0.2s;
+}
+
+.sidebar-delete-btn:hover {
+    background: #c82333;
+}
+
+/* Modal Styling Improvements */
+#deleteButtonModal .modal-content {
+    border-top: 5px solid #dc3545;
+}
+
+#delete-btn-select {
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    padding: 8px;
+    font-size: 1rem;
+    width: 100%;
+    box-sizing: border-box; 
+}

@@ -1,0 +1,26 @@
+<header class="map-header">
+    <div class="header-content">
+        <div class="logo-section">
+            <!-- Logo & Text Wrapper -->
+            <div class="header-left">
+                <div class="logo-container">
+                    <img src="{{ url_for('static', filename='images/imd_logo.png') }}" alt="IMD Logo" class="imd-logo">
+                </div>
+                <div class="header-text">
+                    <h1>India Meteorological Department (IMD)</h1>
+                    <h2>Meteorological Watch Office - Mumbai</h2>
+
+                </div>
+            </div>
+        </div>
+
+        <div class="header-right">
+            <!-- Admin Section Removed (Moved to Sidebar/Navbar) -->
+
+            <!-- UTC Clock -->
+            <div class="utc-clock">
+                UTC: <span id="utc-time">--:--</span> | <span id="utc-date">-- --- ----</span>
+            </div>
+        </div>
+    </div>
+</header>
