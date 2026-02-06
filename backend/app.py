@@ -6,7 +6,7 @@ from database import init_db, cleanup_expired_uploads
 
 # Import Blueprints
 from features.map import map_bp
-from features.dashboard import dashboard_bp
+from features.dashboard import dashboard_bp, configure_rvr_scheduler
 from features.notam import notam_bp, configure_notam_scheduler
 from features.ogimet import ogimet_bp, configure_scheduler
 
@@ -36,6 +36,7 @@ def create_app():
         # logger.info("Database initialized successfully.")
         configure_scheduler()
         configure_notam_scheduler(scheduler)
+        configure_rvr_scheduler(scheduler)
         
         # Cleanup Job (Daily)
         if not scheduler.get_job('cleanup_uploads'):

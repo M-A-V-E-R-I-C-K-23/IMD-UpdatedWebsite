@@ -392,191 +392,52 @@
             <div class="card-header">
                 LIVE RVR – MUMBAI
             </div>
-            <a href="http://rvrcamd.imd.gov.in:5000/live-rvr" target="_blank" class="card-content rvr-content-compact"
-                id="rvr-container" style="text-decoration: none; cursor: pointer;">
-                <style>
-                    #rvr-container {
-                        overflow: hidden;
-                        background-color: #001f3f;
-                        padding: 0;
-                        height: 100%;
-                        display: flex;
-                        flex-direction: column;
-                    }
-
-                    .rvr-table {
-                        width: 100%;
-                        table-layout: fixed;
-                        border-collapse: collapse;
-                        color: white;
-                        font-family: Arial, sans-serif;
-                        font-size: 0.9rem;
-                    }
-
-                    .rvr-table thead th {
-                        background-color: #001f3f;
-                        color: #ffd700;
-                        font-weight: bold;
-                        text-align: center;
-                        padding: 8px 4px;
-                        border-bottom: 2px solid rgba(255, 255, 255, 0.2);
-                        white-space: nowrap;
-                    }
-
-                    .rvr-table tbody td {
-                        text-align: center;
-                        padding: 6px 4px;
-                        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-                        white-space: nowrap;
-                        overflow: hidden;
-                        text-overflow: ellipsis;
-                        font-weight: 500;
-                    }
-
-                    .rvr-trend-up {
-                        color: #4caf50;
-                        font-size: 1.1em;
-                    }
-
-                    .rvr-trend-down {
-                        color: #f44336;
-                        font-size: 1.1em;
-                    }
-
-                    .rvr-trend-neutral {
-                        color: #ffd700;
-                        font-size: 1.1em;
-                    }
-
-                    .rvr-footer {
-                        text-align: right;
-                        color: #bbb;
-                        font-size: 0.75rem;
-                        padding: 4px 8px;
-                        background: #001f3f;
-                        margin-top: auto;
-                    }
-                </style>
-
-                <table class="rvr-table">
-                    <thead>
-                        <tr>
-                            <th style="width: 15%;">RWY</th>
-                            <th style="width: 20%;">TDZ</th>
-                            <th style="width: 20%;">MID</th>
-                            <th style="width: 20%;">END</th>
-                            <th style="width: 25%;">TREND</th>
-                        </tr>
-                    </thead>
-                    <tbody id="rvr-table-body">
-                        <tr>
-                            <td colspan="5" style="padding: 20px; color: #ccc;">Loading data...</td>
-                        </tr>
-                    </tbody>
-                </table>
-                <div class="rvr-footer" id="rvr-footer">Updated: --</div>
+            <div class="card-content rvr-content-compact" id="rvr-container"
+                style="padding: 0; overflow: hidden; background-color: #000; display: flex; align-items: center; justify-content: center;">
+                <img id="rvr-screenshot" src="{{ url_for('static', filename='rvr/latest_rvr.png') }}"
+                    alt="RVR Status - Loading..."
+                    style="width: 100%; height: auto; object-fit: contain; max-height: 100%;"
+                    onerror="this.onerror=null; this.src='{{ url_for('static', filename='img/rvr_placeholder.png') }}'; this.alt='RVR Unavailable';">
 
                 <script>
                     (function () {
-                        const rvrBody = document.getElementById('rvr-table-body');
-                        const rvrFooter = document.getElementById('rvr-footer');
-
-                        function fetchRVR() {
-                            const startTime = Date.now();
-                            // Show loading state if table is empty or has error
-                            if (rvrBody.innerHTML.includes('No Data') || rvrBody.innerHTML.includes('Unavailable')) {
-                                rvrBody.innerHTML = '<tr><td colspan="5" style="padding: 20px; color: #ccc;">Fetching RVR data...</td></tr>';
-                            }
-
-                            fetch("/api/rvr/status")
-                                .then(response => response.json())
-                                .then(json => {
-                                    if (json.status !== 'ok' || !json.data || json.data.length === 0) {
-                                        const msg = json.message || 'No Data Available';
-                                        rvrBody.innerHTML = `<tr><td colspan="5" style="padding: 20px; color: #ff6b6b;">${msg}</td></tr>`;
-                                        rvrFooter.innerText = `Updated: ${new Date().toLocaleTimeString()} | Source: ${json.debug?.source_reachable ? 'OK' : 'Unreachable'}`;
-                                        return;
-                                    }
-
-                                    let html = '';
-                                    json.data.forEach(row => {
-                                        let trendClass = '';
-                                        if (row.trend === '↑') trendClass = 'rvr-trend-up';
-                                        else if (row.trend === '↓') trendClass = 'rvr-trend-down';
-                                        else if (row.trend === '→') trendClass = 'rvr-trend-neutral';
-
-                                        // Safety check for nulls
-                                        const rwy = row.rwy || '--';
-                                        const tdz = row.tdz || '--';
-                                        const mid = row.mid || '--';
-                                        const end = row.end || '--';
-                                        const trend = row.trend || '';
-
-                                        html += `
-                                            <tr>
-                                                <td style="color: #ffd700; font-weight: bold;">${rwy}</td>
-                                                <td>${tdz}</td>
-                                                <td>${mid}</td>
-                                                <td>${end}</td>
-                                                <td class="${trendClass}">${trend}</td>
-                                            </tr>
-                                        `;
-                                    });
-                                    rvrBody.innerHTML = html;
-
-                                    // Update footer
-                                    // Use last_fetch from backend if available, else current time
-                                    let timeStr = new Date().toLocaleTimeString();
-                                    if (json.debug?.last_fetch) {
-                                        const d = new Date(json.debug.last_fetch + 'Z'); // Ensure UTC parsing
-                                        timeStr = d.toLocaleTimeString('en-US', { hour12: false, hour: '2-digit', minute: '2-digit' });
-                                    }
-
-                                    let sourceStatus = json.debug?.source_reachable ? 'OK' : 'Fail';
-                                    let cachedStatus = json.debug?.cached ? '(Cached)' : '';
-
-                                    rvrFooter.innerText = `Updated: ${timeStr} UTC | Source: ${sourceStatus} ${cachedStatus}`;
-                                })
-                                .catch(err => {
-                                    console.warn('RVR Fetch Error:', err);
-                                    rvrBody.innerHTML = '<tr><td colspan="5" style="padding: 20px; color: #ff6b6b;">Backend Connection Failed</td></tr>';
-                                    rvrFooter.innerText = `Updated: -- | Source: Unreachable`;
-                                });
+                        const img = document.getElementById('rvr-screenshot');
+                        function refreshImage() {
+                            const timestamp = new Date().getTime();
+                            // Append timestamp to bust cache
+                            const baseUrl = "{{ url_for('static', filename='rvr/latest_rvr.png') }}";
+                            img.src = `${baseUrl}?t=${timestamp}`;
                         }
-
-                        // Initial fetch
-                        fetchRVR();
-                        // Refresh every 60s (since cache is 5 mins, 60s is fine)
-                        setInterval(fetchRVR, 60000);
+                        // Refresh every 60 seconds
+                        setInterval(refreshImage, 60000);
                     })();
                 </script>
-            </a>
-        </div>
-        <div class="info-card bottom-card">
-            <div class="card-header">Latest METAR & TAF (VABB)</div>
-            <div class="card-content">
-                <div class="metar-display">
-                    <p><strong>METAR:</strong> Loading...</p>
-                    <p><strong>TAF:</strong> Loading...</p>
+            </div>
+            <div class="info-card bottom-card">
+                <div class="card-header">Latest METAR & TAF (VABB)</div>
+                <div class="card-content">
+                    <div class="metar-display">
+                        <p><strong>METAR:</strong> Loading...</p>
+                        <p><strong>TAF:</strong> Loading...</p>
+                    </div>
+                </div>
+            </div>
+            <div class="info-card bottom-card" id="sigmet-card">
+                <div class="card-header">
+                    SIGMET – Mumbai FIR
+                </div>
+                <div class="card-content" id="sigmet-content"
+                    style="display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; gap: 10px;">
+                    <!-- Content will be injected by JS -->
+                    <p style="color: #666; font-size: 0.9rem;">Loading status...</p>
+
+                    <a href="https://aviationweather.gov/gfa/#sigmet" target="_blank" class="view-data-btn"
+                        style="padding: 8px 20px; font-size: 0.95rem; margin-top: 5px;">
+                        Display SIGMET ↗
+                    </a>
                 </div>
             </div>
         </div>
-        <div class="info-card bottom-card" id="sigmet-card">
-            <div class="card-header">
-                SIGMET – Mumbai FIR
-            </div>
-            <div class="card-content" id="sigmet-content"
-                style="display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; gap: 10px;">
-                <!-- Content will be injected by JS -->
-                <p style="color: #666; font-size: 0.9rem;">Loading status...</p>
-
-                <a href="https://aviationweather.gov/gfa/#sigmet" target="_blank" class="view-data-btn"
-                    style="padding: 8px 20px; font-size: 0.95rem; margin-top: 5px;">
-                    Display SIGMET ↗
-                </a>
-            </div>
-        </div>
-    </div>
 
     </div>
 
