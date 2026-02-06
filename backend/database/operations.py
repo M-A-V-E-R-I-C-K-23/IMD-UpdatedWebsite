@@ -1,4 +1,5 @@
 import sqlite3
+import os
 from datetime import datetime
 from core.config import DB_NAME
 from core.extensions import logger
@@ -527,7 +528,116 @@ def auto_expire_notams():
 
 
 
+# --- Aerodrome Warning Helpers ---
+
+def create_aerodrome_warning(station_icao, message, valid_from, valid_to, created_by='System'):
+    conn = get_db_connection()
+    try:
+        cursor = conn.execute('''
+            INSERT INTO aerodrome_warnings (station_icao, message, valid_from, valid_to, status, created_by)
+            VALUES (?, ?, ?, ?, 'ACTIVE', ?)
+        ''', (station_icao, message, valid_from, valid_to, created_by))
+        conn.commit()
+        return cursor.lastrowid
+    except Exception as e:
+        logger.error(f"Error creating aerodrome warning: {e}")
+        return None
+    finally:
+        conn.close()
+
+def get_active_aerodrome_warnings():
+    """
+    Get all active aerodrome warnings from the EXTERNAL Aerodrome App database.
+    Path: /home/mwomumbai/app/sql_app.db
+    """
+    # The external database path
+    EXTERNAL_DB_PATH = '/home/mwomumbai/app/sql_app.db'
+    
+    # Fallback to local if running in dev without access to external path?
+    # But user is on server, so we use the absolute path.
+    if not os.path.exists(EXTERNAL_DB_PATH):
+        # Fallback for local development or if file missing
+        # Try relative for local debug if needed, but primary is the server path.
+        if os.path.exists('met_data.db'):
+            conn = sqlite3.connect('met_data.db')
+            conn.row_factory = sqlite3.Row
+            now = datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S')
+            cursor = conn.execute("SELECT * FROM aerodrome_warnings WHERE status = 'ACTIVE' AND valid_to > ?", (now,))
+            return [dict(row) for row in cursor.fetchall()]
+        return []
+
+    try:
+        import json
+        conn = sqlite3.connect(EXTERNAL_DB_PATH)
+        conn.row_factory = sqlite3.Row
+        
+        # In the Aerodrome App (sql_app.db):
+        # - Table name is 'alerts'
+        # - Column 'status' is 'FINALIZED' for active broadcasts
+        # - Column 'content' is a JSON string containing airport and validity
+        
+        cursor = conn.execute('''
+            SELECT * FROM alerts 
+            WHERE status IN ('FINALIZED', 'active')
+            ORDER BY created_at DESC
+        ''')
+        
+        rows = cursor.fetchall()
+        active_warnings = []
+        now = datetime.utcnow()
+        
+        for row in rows:
+            data = dict(row)
+            content_raw = data.get('content')
+            if not content_raw:
+                continue
+                
+            try:
+                content = json.loads(content_raw)
+                # Schema: {'airport': 'VAKP', 'valid_until_iso': '2026-02-06T22:41:00', 'generated_text': '...'}
+                station_icao = content.get('airport')
+                valid_to_iso = content.get('valid_until_iso')
+                message = content.get('generated_text')
+                
+                if not station_icao or not valid_to_iso:
+                    continue
+                
+                # Parse validity
+                try:
+                    # ISO format: 2026-02-06T22:41:00 or similar
+                    valid_to_dt = datetime.fromisoformat(valid_to_iso.replace('Z', ''))
+                    
+                    if valid_to_dt > now:
+                        # Map to what frontend expects
+                        active_warnings.append({
+                            'station_icao': station_icao,
+                            'valid_to': valid_to_dt.strftime('%Y-%m-%d %H:%M:%S'),
+                            'message': message,
+                            'created_at': data.get('created_at')
+                        })
+                except Exception as ex:
+                    logger.error(f"Date parse error in sync logic: {ex}")
+                    
+            except Exception as ex:
+                logger.error(f"JSON parse error in sync logic: {ex}")
+                
+        return active_warnings
+        
+    except Exception as e:
+        logger.error(f"Error accessing external Aerodrome DB: {e}")
+        return []
+    finally:
+        if 'conn' in locals():
+            conn.close()
+
+def get_active_warning_for_station(station_icao):
+    """Filter from the consolidated active warnings list."""
+    all_warnings = get_active_aerodrome_warnings()
+    return [w for w in all_warnings if w['station_icao'].strip().upper() == station_icao.strip().upper()]
+
+
 # --- Dynamic Button Management ---
+
 
 def add_dynamic_button(section, label, btn_type, url=None, file_path=None, upload_id=None):
     """

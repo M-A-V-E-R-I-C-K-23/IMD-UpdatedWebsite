@@ -1,4 +1,5 @@
 import os
+from datetime import timedelta
 
 # Base Config
 SECRET_KEY = os.environ.get('SECRET_KEY') or 'dev-secret-key-change-in-prod'

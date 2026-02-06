@@ -13,6 +13,12 @@ window.D3MapCore = (function () {
     let config = {};
     let airports = [];
 
+    // Alert Handling
+    let activeAlerts = {}; // { 'STATION_CODE': { validTo: <Date>, isUrgent: bool } }
+    let blinkState = true; // Toggle for blinking
+    let blinkInterval = null;
+    let dataPollInterval = null;
+
     // Canvas vars
     let canvas, context;
     let cachedPath2D = null;
@@ -139,6 +145,9 @@ window.D3MapCore = (function () {
             console.log('[D3 Map] Rendering layer with', airports.length, 'airports');
             renderLayer(zoomLayer, geoData, path);
 
+            // Start Alert Polling
+            startAlertSystem();
+
             // Pre-Calculate Airport Positions (Project once)
             airports.forEach(a => {
                 const coords = mainProjection([a.long, a.lat]);
@@ -217,12 +226,13 @@ window.D3MapCore = (function () {
         context.scale(transform.k, transform.k);
 
         // Inverse scaling: pins shrink when zooming IN
-        const baseScale = 1.0; // Adjusted from SVG 1.6 to match standard canvas size
-        const pinScale = Math.min(2.0, Math.max(0.2, 1.6 / transform.k)); // Reuse logic
+        const baseScale = 1.0;
+        // REVERTED: Standard sizes (min 0.2, max 2.0)
+        const pinScale = Math.min(2.0, Math.max(0.2, 1.6 / transform.k));
 
         // Label settings (Pin Space)
         context.textAlign = "center";
-        context.font = "600 7px sans-serif"; // Target ~11px screen size
+        context.font = "600 7px sans-serif"; // Reverted to 7px
         context.lineJoin = "round";
 
         airports.forEach(airport => {
@@ -234,15 +244,45 @@ window.D3MapCore = (function () {
 
             // 1. Draw Pin
             context.translate(-12, -22); // Re-align Path2D origin
-            context.fillStyle = "#2563eb"; // Blue
-            context.strokeStyle = "rgba(255, 255, 255, 0.8)";
-            context.lineWidth = 1;
+
+            // Determine Pin Color
+            let pinColor = "#2563eb"; // Default Blue
+            let isDimmed = false;
+            let hasAlert = false;
+
+            // ROBUST LOOKUP: Trim whitespace
+            let code = airport.code;
+            if (typeof code === 'string') code = code.trim();
+
+            if (activeAlerts[code]) {
+                hasAlert = true;
+                pinColor = "#ef4444"; // Keep brighter red
+
+                // If urgent and blink state is "off", dim it
+                if (activeAlerts[code].isUrgent && !blinkState) {
+                    isDimmed = true;
+                }
+            }
+
+            context.fillStyle = pinColor;
+            context.strokeStyle = "rgba(255, 255, 255, 0.9)";
+            context.lineWidth = 1.5; // Thicker border
+
+            if (isDimmed) {
+                context.globalAlpha = 0.4;
+            }
+
+            // GLOW EFFECT: Only for selection (User requested NO glow for alerts)
+            if (selectedAirportCode === airport.code) {
+                context.shadowBlur = 15;
+                context.shadowColor = "#38bdf8";
+            } else {
+                context.shadowBlur = 0; // Ensure no shadow residue
+            }
 
             if (selectedAirportCode === airport.code) {
                 context.strokeStyle = "#fff";
                 context.lineWidth = 2.5;
-                context.shadowBlur = 10;
-                context.shadowColor = "#38bdf8";
             }
 
             context.fill(cachedPath2D);
@@ -250,28 +290,24 @@ window.D3MapCore = (function () {
 
             // 2. Draw Center Dot
             context.beginPath();
-            context.arc(12, 9, 3, 0, 2 * Math.PI); // Relative to new origin
+            context.arc(12, 9, 3, 0, 2 * Math.PI); // Reverted dot size
             context.fillStyle = "#fff";
             context.fill();
 
-            // 3. Draw Label (Relative to Pin Origin 12, 22)
-            // Pin visual top is around (12, 2). Place label centered above.
-            // Using offset (12, -6) in Pin Space
-            context.lineWidth = 2.5; // Stroke width for text halo
-            context.strokeStyle = "#0f172a"; // Dark halo
-            context.fillStyle = "#f1f5f9"; // Light text
-
-            // Note: fillText arguments are (text, x, y) in current transform system
-            // We want it centered at x=12, y=-6 relative to the -12,-22 translated origin
-            // Actually, we are currently translated to (-12, -22). 
-            // So center of pin is at (12, 22) relative to this.
-            // Wait, previous dot was at (12, 9) relative to this new origin.
-            // So x=12 is horizontal center.
-            // y=2 is top of pin in Path definition "M12 2..."
-            // So we want label above y=2. Say y=-5.
+            // 3. Draw Label
+            context.shadowBlur = 0; // Reset shadow for text
+            context.lineWidth = 2.5; // Reverted halo
+            context.strokeStyle = "#0f172a";
+            context.fillStyle = "#f1f5f9";
 
             context.strokeText(airport.code, 12, -5);
             context.fillText(airport.code, 12, -5);
+
+
+            // Reset Alpha
+            if (isDimmed) {
+                context.globalAlpha = 1.0;
+            }
 
             context.restore();
         });
@@ -280,119 +316,239 @@ window.D3MapCore = (function () {
     }
 
 
-function handleCanvasClick(event) {
-    if (!currentTransform) return;
+    function handleCanvasClick(event) {
+        if (!currentTransform) return;
 
-    // Get mouse position relative to canvas
-    const [mx, my] = d3.pointer(event, this);
+        // Get mouse position relative to canvas
+        const [mx, my] = d3.pointer(event, this);
 
-    // Invert transform to get world coordinates
-    const wx = (mx - currentTransform.x) / currentTransform.k;
-    const wy = (my - currentTransform.y) / currentTransform.k;
+        // Invert transform to get world coordinates
+        const wx = (mx - currentTransform.x) / currentTransform.k;
+        const wy = (my - currentTransform.y) / currentTransform.k;
 
-    // Find nearest airport
-    // Simple distance check (N is small, < 100 usually)
-    let nearest = null;
-    let minDist = Infinity;
-    const threshold = 20 / currentTransform.k; // Hit radius approx 20px screen space
+        // Find nearest airport
+        // Simple distance check (N is small, < 100 usually)
+        let nearest = null;
+        let minDist = Infinity;
+        const threshold = 20 / currentTransform.k; // Hit radius approx 20px screen space
 
-    airports.forEach(a => {
-        const dx = a.x - wx;
-        const dy = a.y - wy; // Pin acts as if centered at bottom, so wy is fine
-        // Actually pin center is at y-11 approx. 
-        const dist = Math.sqrt(dx * dx + dy * dy);
-        if (dist < minDist) {
-            minDist = dist;
-            nearest = a;
+        airports.forEach(a => {
+            const dx = a.x - wx;
+            const dy = a.y - wy; // Pin acts as if centered at bottom, so wy is fine
+            // Actually pin center is at y-11 approx. 
+            const dist = Math.sqrt(dx * dx + dy * dy);
+            if (dist < minDist) {
+                minDist = dist;
+                nearest = a;
+            }
+        });
+
+        if (nearest && minDist < threshold) {
+            handleAirportClick(nearest);
         }
-    });
-
-    if (nearest && minDist < threshold) {
-        handleAirportClick(nearest);
     }
-}
 
-function renderLayer(target, geoData, geoPath) {
-    // Draw states
-    target.selectAll(".state-color")
-        .data(geoData.features)
-        .enter()
-        .append("path")
-        .attr("d", geoPath)
-        .attr("class", "state-color muted");
-
-    // Draw FIR boundary (Mumbai)
-    if (config.showFIR !== false) {
-        target.append("path")
-            .datum(FIR_DATA.mumbai)
+    function renderLayer(target, geoData, geoPath) {
+        // Draw states
+        target.selectAll(".state-color")
+            .data(geoData.features)
+            .enter()
+            .append("path")
             .attr("d", geoPath)
-            .attr("class", "fir-boundary fir-mumbai");
+            .attr("class", "state-color muted");
+
+        // Draw FIR boundary (Mumbai)
+        if (config.showFIR !== false) {
+            target.append("path")
+                .datum(FIR_DATA.mumbai)
+                .attr("d", geoPath)
+                .attr("class", "fir-boundary fir-mumbai");
+        }
+
+        // Draw graticule
+        const graticule = d3.geoGraticule().step([5, 5]);
+        target.append("path")
+            .datum(graticule)
+            .attr("class", "graticule")
+            .attr("d", geoPath);
+
+        // NO SVG AIRPORTS RENDERED HERE
     }
 
-    // Draw graticule
-    const graticule = d3.geoGraticule().step([5, 5]);
-    target.append("path")
-        .datum(graticule)
-        .attr("class", "graticule")
-        .attr("d", geoPath);
+    function handleAirportClick(airport) {
+        console.log('Airport clicked:', airport.code);
+        selectedAirportCode = airport.code;
 
-    // NO SVG AIRPORTS RENDERED HERE
-}
+        // Redraw to show selection highlight
+        drawMarkers(currentTransform);
 
-function handleAirportClick(airport) {
-    console.log('Airport clicked:', airport.code);
-    selectedAirportCode = airport.code;
-
-    // Redraw to show selection highlight
-    drawMarkers(currentTransform);
-
-    // Fire event or callback
-    if (config.onAirportClick) {
-        config.onAirportClick(airport);
-    } else {
-        // Default: navigate to dashboard
-        window.location.href = `/dashboard/${airport.code}`;
+        // Fire event or callback
+        if (config.onAirportClick) {
+            config.onAirportClick(airport);
+        } else {
+            // Default: navigate to dashboard
+            window.location.href = `/dashboard/${airport.code}`;
+        }
     }
-}
 
-function updateScaleBar(k, width, height) {
-    const center = mainProjection.invert([width / 2, height / 2]);
-    const p1 = mainProjection.invert([width / 2, height / 2]);
-    const p2 = mainProjection.invert([width / 2 + 100 / k, height / 2]);
+    function updateScaleBar(k, width, height) {
+        const center = mainProjection.invert([width / 2, height / 2]);
+        const p1 = mainProjection.invert([width / 2, height / 2]);
+        const p2 = mainProjection.invert([width / 2 + 100 / k, height / 2]);
 
-    if (p1 && p2) {
-        const R = 6371; // Earth radius in km
-        const dLat = (p2[1] - p1[1]) * Math.PI / 180;
-        const dLon = (p2[0] - p1[0]) * Math.PI / 180;
-        const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-            Math.cos(p1[1] * Math.PI / 180) * Math.cos(p2[1] * Math.PI / 180) *
-            Math.sin(dLon / 2) * Math.sin(dLon / 2);
-        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-        const d = R * c;
+        if (p1 && p2) {
+            const R = 6371; // Earth radius in km
+            const dLat = (p2[1] - p1[1]) * Math.PI / 180;
+            const dLon = (p2[0] - p1[0]) * Math.PI / 180;
+            const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+                Math.cos(p1[1] * Math.PI / 180) * Math.cos(p2[1] * Math.PI / 180) *
+                Math.sin(dLon / 2) * Math.sin(dLon / 2);
+            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+            const d = R * c;
 
-        const niceNumbers = [10, 20, 50, 100, 200, 500, 1000, 2000, 5000];
-        let displayKm = 500;
-        let displayPx = 100;
+            const niceNumbers = [10, 20, 50, 100, 200, 500, 1000, 2000, 5000];
+            let displayKm = 500;
+            let displayPx = 100;
 
-        for (let num of niceNumbers) {
-            const px = (100 * num) / d;
-            if (px >= 60 && px <= 180) {
-                displayKm = num;
-                displayPx = px;
-                break;
+            for (let num of niceNumbers) {
+                const px = (100 * num) / d;
+                if (px >= 60 && px <= 180) {
+                    displayKm = num;
+                    displayPx = px;
+                    break;
+                }
+            }
+
+            const scaleBarLine = document.getElementById("scale-bar-line");
+            const scaleBarText = document.getElementById("scale-bar-text");
+            if (scaleBarLine && scaleBarText) {
+                scaleBarLine.style.width = `${displayPx}px`;
+                scaleBarText.innerText = `${displayKm} km`;
+            }
+        }
+    }
+
+    // --- ALERT SYSTEM ---
+
+    function startAlertSystem() {
+        console.log('[D3 Map] Starting alert polling...');
+        fetchActiveWarnings();
+
+        // Poll every 30 seconds for new warnings
+        dataPollInterval = setInterval(fetchActiveWarnings, 30000);
+
+        // Check blink status every second
+        setInterval(updateUrgencyStatus, 1000);
+
+        // Start blink animation loop (500ms)
+        blinkInterval = setInterval(() => {
+            blinkState = !blinkState;
+            // Only redraw if we have urgent alerts
+            const hasUrgent = Object.values(activeAlerts).some(a => a.isUrgent);
+            if (hasUrgent) {
+                drawMarkers(currentTransform);
+            }
+        }, 500);
+    }
+
+    async function fetchActiveWarnings() {
+        try {
+            const response = await fetch('/api/warnings/active');
+            const result = await response.json();
+
+            if (result.success) {
+                // Process warnings
+                const newAlerts = {};
+                const now = new Date(); // Browser local time? No, need UTC comparison.
+                // Assuming result data has UTC strings
+
+                result.data.forEach(w => {
+                    // w.valid_to format: "YYYY-MM-DD HH:MM:SS" (UTC from DB)
+                    let isoStr = w.valid_to.replace(' ', 'T');
+                    if (!isoStr.endsWith('Z')) isoStr += 'Z';
+
+                    // Normalize Key
+                    let key = w.station_icao;
+                    if (typeof key === 'string') key = key.trim().toUpperCase();
+
+                    const validToDate = new Date(isoStr);
+                    newAlerts[key] = {
+                        validTo: validToDate,
+                        isUrgent: false // Calc later
+                    };
+                });
+
+                // LOGIC UPDATE: Sender Station (VABB) must also be RED if ANY alert exists
+                const SENDER_CODE = 'VABB';
+                const alertKeys = Object.keys(newAlerts);
+
+                if (alertKeys.length > 0) {
+                    // Find max validity and urgency needs
+                    let maxValidTo = new Date(0);
+
+                    Object.values(newAlerts).forEach(a => {
+                        if (a.validTo > maxValidTo) maxValidTo = a.validTo;
+                    });
+
+                    // If VABB not already in list (i.e. not warning for itself), add it
+                    if (!newAlerts[SENDER_CODE]) {
+                        newAlerts[SENDER_CODE] = {
+                            validTo: maxValidTo, // Inherit max validity
+                            isUrgent: false,     // Will be recalculated in updateUrgencyStatus
+                            isSender: true       // Tag as sender (optional, for debugging)
+                        };
+                    } else {
+                        // If VABB IS present, ensure it extends to max valid time if needed?
+                        // Usually implies specific warning for VABB, so keep its specific time.
+                        // But user wants "Sender" behavior. Let's ensure it stays red as long as others are.
+                        if (maxValidTo > newAlerts[SENDER_CODE].validTo) {
+                            newAlerts[SENDER_CODE].validTo = maxValidTo;
+                        }
+                    }
+                }
+
+                activeAlerts = newAlerts;
+                updateUrgencyStatus(); // Updates flags and triggers redraw
+                drawMarkers(currentTransform); // Immediate update
+            }
+        } catch (e) {
+            console.error("[D3 Map] Alert fetch error", e);
+        }
+    }
+
+
+
+
+    function updateUrgencyStatus() {
+        const now = new Date();
+        let changed = false;
+
+        // Iterate all active alerts
+        for (const [code, warning] of Object.entries(activeAlerts)) {
+            // Check expiry
+            if (warning.validTo < now) {
+                // Expired locally!
+                delete activeAlerts[code];
+                changed = true;
+                continue;
+            }
+
+            // Check Urgency (< 30 mins)
+            const timeDiff = warning.validTo - now;
+            const isUrgent = timeDiff <= 30 * 60 * 1000; // 30 mins in ms
+
+            if (warning.isUrgent !== isUrgent) {
+                warning.isUrgent = isUrgent;
+                changed = true;
             }
         }
 
-        const scaleBarLine = document.getElementById("scale-bar-line");
-        const scaleBarText = document.getElementById("scale-bar-text");
-        if (scaleBarLine && scaleBarText) {
-            scaleBarLine.style.width = `${displayPx}px`;
-            scaleBarText.innerText = `${displayKm} km`;
+        if (changed) {
+            drawMarkers(currentTransform);
         }
     }
-}
 
-return {
-    init: init
-};
-}) ();
+    return {
+        init: init
+    };
+})();

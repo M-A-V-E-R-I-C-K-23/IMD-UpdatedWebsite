@@ -252,7 +252,65 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
-    // Initialize
+    // --- Fetch Latest METAR (Live) ---
+    function fetchLatestMetar() {
+        const container = document.getElementById('latestDataContent');
+        if (!container) return;
+
+        fetch(`/api/latest/${selectedStation}`)
+            .then(res => res.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    const d = data.data;
+                    const timeStr = d.timestamp_utc ? d.timestamp_utc.substring(11, 16) : '--:--';
+
+                    container.innerHTML = `
+                        <div class="data-row">Time: <strong>${timeStr} UTC</strong></div>
+                        <div class="data-row">Wind: <strong>${d.wind_direction}° / ${d.wind_speed}kt</strong></div>
+                        <div class="data-row">Vis: <strong>${d.visibility}m</strong> | Temp: <strong>${d.temperature}°C</strong></div>
+                        <div class="metar-box">
+                            ${d.raw_metar || 'No raw METAR available'}
+                        </div>
+                    `;
+                } else {
+                    container.innerHTML = `<p class="loading-text">No data available</p>`;
+                }
+            })
+            .catch(err => {
+                console.error("METAR fetch error:", err);
+                container.innerHTML = `<p class="loading-text" style="color:red">Error loading data</p>`;
+            });
+    }
+
+    // --- Fetch SIGMET Status ---
+    function fetchSigmetStatus() {
+        const container = document.getElementById('sigmetContent');
+        if (!container) return;
+
+        fetch('/api/sigmet/status')
+            .then(res => res.json())
+            .then(data => {
+                if (data.is_active) {
+                    container.innerHTML = `
+                        <div class="sigmet-active" style="margin-bottom: 5px;">⚠️ Active SIGMET</div>
+                        <div style="font-size: 0.9em; margin-bottom: 5px;">${data.phenomenon || 'Unknown'}</div>
+                        <div style="font-size: 0.85em; color: #555;">Mumbai FIR (VABF)</div>
+                        <a href="#" class="btn-open" style="margin-top: 10px; font-size: 0.85em; background: #d9534f;">Display SIGMET ↗</a>
+                    `;
+                } else {
+                    container.innerHTML = `
+                        <div class="sigmet-none" style="margin-bottom: 10px;">No Active SIGMET</div>
+                        <div style="font-size: 0.9em; color: #777; margin-bottom: 5px;">Mumbai FIR (VABF)</div>
+                        <div style="font-size: 0.8em; color: #aaa;">Last checked: ${data.last_checked ? data.last_checked.substring(11, 16) : '--:--'} UTC</div>
+                        <a href="/static/img/sigmet_display.png" target="_blank" class="btn-open" style="margin-top: 10px; font-size: 0.85em;">Display SIGMET ↗</a>
+                    `;
+                }
+            })
+            .catch(err => {
+                console.error("SIGMET fetch error:", err);
+                container.innerHTML = `<p class="loading-text" style="color:red">Error checking SIGMET</p>`;
+            });
+    }
     fetchData();
 
     // Auto-refresh every 10 minutes for live data

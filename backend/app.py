@@ -1,5 +1,7 @@
 import os
 from flask import Flask
+from flask_cors import CORS
+from flask_compress import Compress
 from core.config import UPLOAD_FOLDER, MAX_CONTENT_LENGTH, SECRET_KEY, DB_NAME
 from core.extensions import scheduler, logger
 from database import init_db, cleanup_expired_uploads
@@ -15,6 +17,20 @@ def create_app():
     app = Flask(__name__, 
                 static_folder='../frontend/static',
                 template_folder='templates')
+    
+    # Enable Gzip Compression and CORS
+    # Add application/geo+json to compressible types
+    app.config['COMPRESS_MIMETYPES'] = [
+        'text/html', 
+        'text/css', 
+        'text/xml', 
+        'application/json', 
+        'application/javascript', 
+        'application/geo+json'
+    ]
+    Compress(app)
+    CORS(app)
+
     app.secret_key = SECRET_KEY
     app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
     app.config['MAX_CONTENT_LENGTH'] = MAX_CONTENT_LENGTH

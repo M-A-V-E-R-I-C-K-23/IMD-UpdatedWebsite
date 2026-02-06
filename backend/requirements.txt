@@ -18,3 +18,4 @@ pytz
 opencv-python-headless
 pypdf
 pymupdf
+Flask-Compress

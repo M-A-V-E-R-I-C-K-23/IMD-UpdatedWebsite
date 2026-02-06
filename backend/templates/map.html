@@ -5,9 +5,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>IMD Maharashtra - Meteorological Monitoring</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/map.css') }}?v=3">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/d3_map.css') }}?v=3">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/notam_styles.css') }}?v=3">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/map.css') }}?v=7">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/d3_map.css') }}?v=5">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/notam_styles.css') }}?v=5">
 
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
     <script src="{{ url_for('static', filename='js/d3.v7.min.js') }}"></script>
@@ -183,8 +183,8 @@
                             style="height:60px;">{{ item.description }}</textarea>
 
                         <div style="margin-top:5px; text-align:right;">
-                            <button onclick="publishNews({{ item.id }})" class="btn-xs btn-publish">Publish</button>
-                            <button onclick="deleteNews({{ item.id }})" class="btn-xs btn-danger">Delete</button>
+                            <button onclick="publishNews('{{ item.id }}')" class="btn-xs btn-publish">Publish</button>
+                            <button onclick="deleteNews('{{ item.id }}')" class="btn-xs btn-danger">Delete</button>
                         </div>
                     </div>
                     {% else %}
@@ -193,7 +193,7 @@
                         <div class="sidebar-item-header">
                             <span class="item-date">{{ item.upload_time }}</span>
                             {% if session.get('role') == 'admin' %}
-                            <button class="sidebar-delete-btn" onclick="deleteNews({{ item.id }})"
+                            <button class="sidebar-delete-btn" onclick="deleteNews('{{ item.id }}')"
                                 style="border:none; background:none; cursor:pointer; color:red;">×</button>
                             {% endif %}
                         </div>
@@ -258,8 +258,8 @@
                             style="height:60px;">{{ item.message }}</textarea>
 
                         <div style="margin-top:5px; text-align:right;">
-                            <button onclick="publishNotice({{ item.id }})" class="btn-xs btn-publish">Publish</button>
-                            <button onclick="deleteNotice({{ item.id }})" class="btn-xs btn-danger">Delete</button>
+                            <button onclick="publishNotice('{{ item.id }}')" class="btn-xs btn-publish">Publish</button>
+                            <button onclick="deleteNotice('{{ item.id }}')" class="btn-xs btn-danger">Delete</button>
                         </div>
                     </div>
                     {% else %}
@@ -290,7 +290,7 @@
                             {{ item.upload_time }}
                             {% if session.get('role') == 'admin' %}
                             <span style="float:right; cursor:pointer; color:red;"
-                                onclick="deleteNotice({{ item.id }})">🗑️</span>
+                                onclick="deleteNotice('{{ item.id }}')">🗑️</span>
                             {% endif %}
                         </div>
                     </div>
@@ -393,53 +393,143 @@
                 LIVE RVR – MUMBAI
             </div>
             <div class="card-content rvr-content-compact" id="rvr-container"
-                style="padding: 0; overflow: hidden; background-color: #000; display: flex; align-items: center; justify-content: center;">
-                <img id="rvr-screenshot" src="{{ url_for('static', filename='rvr/latest_rvr.png') }}"
-                    alt="RVR Status - Loading..."
-                    style="width: 100%; height: auto; object-fit: contain; max-height: 100%;"
-                    onerror="this.onerror=null; this.src='{{ url_for('static', filename='img/rvr_placeholder.png') }}'; this.alt='RVR Unavailable';">
-
-                <script>
-                    (function () {
-                        const img = document.getElementById('rvr-screenshot');
-                        function refreshImage() {
-                            const timestamp = new Date().getTime();
-                            // Append timestamp to bust cache
-                            const baseUrl = "{{ url_for('static', filename='rvr/latest_rvr.png') }}";
-                            img.src = `${baseUrl}?t=${timestamp}`;
-                        }
-                        // Refresh every 60 seconds
-                        setInterval(refreshImage, 60000);
-                    })();
-                </script>
-            </div>
-            <div class="info-card bottom-card">
-                <div class="card-header">Latest METAR & TAF (VABB)</div>
-                <div class="card-content">
-                    <div class="metar-display">
-                        <p><strong>METAR:</strong> Loading...</p>
-                        <p><strong>TAF:</strong> Loading...</p>
-                    </div>
-                </div>
-            </div>
-            <div class="info-card bottom-card" id="sigmet-card">
-                <div class="card-header">
-                    SIGMET – Mumbai FIR
-                </div>
-                <div class="card-content" id="sigmet-content"
-                    style="display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; gap: 10px;">
-                    <!-- Content will be injected by JS -->
-                    <p style="color: #666; font-size: 0.9rem;">Loading status...</p>
-
-                    <a href="https://aviationweather.gov/gfa/#sigmet" target="_blank" class="view-data-btn"
-                        style="padding: 8px 20px; font-size: 0.95rem; margin-top: 5px;">
-                        Display SIGMET ↗
-                    </a>
-                </div>
+                style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 15px;">
+                <p style="margin: 0; font-size: 0.95rem; color: #555;">Live RVR is hosted on CAMD portal</p>
+                <a href="https://camd.imd.gov.in/dgca-cp/" target="_blank" class="rvr-btn" style="
+                        padding: 8px 16px; 
+                        background-color: #0056b3; 
+                        color: white; 
+                        text-decoration: none; 
+                        border-radius: 4px;
+                        font-weight: 500;">
+                    Open Live RVR (CAMD) ↗
+                </a>
             </div>
         </div>
+        <div class="info-card bottom-card">
+            <div class="card-header">Latest METAR & TAF (VABB)</div>
+            <div class="card-content" id="latestDataContent">
+                <div class="loading-text">Loading latest data...</div>
+                <!-- Content injected by JS -->
+            </div>
+        </div>
+        <div class="info-card bottom-card" id="sigmet-card">
+            <div class="card-header">
+                SIGMET – Mumbai FIR
+            </div>
+            <div class="card-content" id="sigmetContent"
+                style="display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; gap: 10px;">
+                <div class="loading-text">Loading SIGMET status...</div>
+                <!-- Content injected by JS -->
+            </div>
+        </div>
+    </div>
 
     </div>
+
+    <script>
+        // --- WEATHER DATA FETCHING ---
+        const STATION_CODE = 'VABB';
+
+        function fetchLatestMetar() {
+            const container = document.getElementById('latestDataContent');
+            if (!container) return;
+
+            fetch(`/api/latest/${STATION_CODE}`)
+                .then(res => res.json())
+                .then(data => {
+                    if (data.error) {
+                        container.innerHTML = `<div class="error-text">Error: ${data.error}</div>`;
+                        return;
+                    }
+
+                    const obs = data.data;
+                    if (!obs) {
+                        container.innerHTML = `<div class="error-text">No data available</div>`;
+                        return;
+                    }
+
+                    // Format Time (HH:MM UTC)
+                    const obsTime = new Date(obs.timestamp_utc);
+                    const timeStr = obsTime.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', timeZone: 'UTC' }) + ' UTC';
+
+                    // Format Date (DD Mon)
+                    const dateStr = obsTime.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', timeZone: 'UTC' });
+
+                    let html = `
+                    <div style="font-size: 0.9rem; margin-bottom: 8px;">
+                        <div class="data-row">Time: <strong>${timeStr}</strong> <span style="font-size:0.8em; color:#666;">(${dateStr})</span></div>
+                        <div class="data-row">Wind: <strong>${obs.wind_direction}° / ${obs.wind_speed}kt</strong></div>
+                        <div class="data-row">Vis: <strong>${obs.visibility}m</strong> | Temp: <strong>${obs.temperature}°C</strong></div>
+                    </div>
+                    `;
+
+                    if (obs.raw_metar) {
+                        html += `<div class="metar-box">${obs.raw_metar}</div>`;
+                    }
+
+                    container.innerHTML = html;
+                })
+                .catch(err => {
+                    console.error("METAR Fetch Error:", err);
+                    container.innerHTML = `<div class="error-text">Failed to load data</div>`;
+                });
+        }
+
+        function fetchSigmetStatus() {
+            const container = document.getElementById('sigmetContent');
+            const card = document.getElementById('sigmet-card');
+            if (!container) return;
+
+            fetch('/api/sigmet/status')
+                .then(res => res.json())
+                .then(data => {
+                    if (data.is_active) {
+                        // ACTIVE SIGMET
+                        card.style.borderColor = '#dc3545'; // Red border
+                        container.innerHTML = `
+                            <div class="sigmet-active">Active SIGMET Reported</div>
+                            <div style="font-size:0.9rem; margin-top:5px;">
+                                <strong>${data.count}</strong> valid SIGMET(s)<br>
+                                <span style="font-size:0.85rem; color:#555;">${data.phenomenon || ''}</span>
+                            </div>
+                            <a href="https://aviationweather.gov/gfa/#sigmet" target="_blank" class="btn-open" style="margin-top:10px; background-color: #dc3545;">
+                                View Warning ↗
+                            </a>
+                        `;
+                    } else {
+                        // NO SIGMET
+                        card.style.borderColor = '#28a745'; // Green border
+                        container.innerHTML = `
+                            <div class="sigmet-none">No Active SIGMET</div>
+                            <div style="font-size: 0.85rem; color: #666; margin-top:5px;">
+                                Mumbai FIR (VABF)
+                            </div>
+                            <div style="font-size: 0.75rem; color: #999; margin-top: 5px;">
+                                Last checked: ${new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })} UTC
+                            </div>
+                            <a href="https://aviationweather.gov/gfa/#sigmet" target="_blank" class="btn-open" style="margin-top:10px;">
+                                Display SIGMET ↗
+                            </a>
+                        `;
+                    }
+                })
+                .catch(err => {
+                    console.error("SIGMET Fetch Error:", err);
+                    container.innerHTML = `<div class="error-text">Status Unknown</div>`;
+                });
+        }
+
+        // Init
+        document.addEventListener('DOMContentLoaded', () => {
+            fetchLatestMetar();
+            fetchSigmetStatus();
+            // Refresh every 5 mins
+            setInterval(fetchLatestMetar, 300000);
+            setInterval(fetchSigmetStatus, 300000);
+        });
+    </script>
+
 
     <!-- Modals -->
     <!-- Login Modal -->
@@ -582,18 +672,27 @@
     </footer>
 
     <!-- D3 Map Data Injection -->
+    <script id="station-coords-data" type="application/json">
+        {{ station_coords | tojson }}
+    </script>
+    <script id="station-names-data" type="application/json">
+        {{ stations | tojson }}
+    </script>
     <script>
         // Inject Flask data for D3 map adapter
-        window.IMD_STATION_COORDS = {{ station_coords | tojson }};
-        window.IMD_STATION_NAMES = {{ stations | tojson }};
-        window.IMD_GEOJSON_URL = "{{ url_for('static', filename='geojson/india_state.geojson') }}";
+        window.IMD_STATION_COORDS = JSON.parse(document.getElementById('station-coords-data').textContent);
+        window.IMD_STATION_NAMES = JSON.parse(document.getElementById('station-names-data').textContent);
+        window.IMD_GEOJSON_URL = "/api/map/india_state";
     </script>
 
     <!-- D3 Map Scripts -->
-    <script src="{{ url_for('static', filename='js/d3_map_core.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/d3_map_adapter.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/clock.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/d3_map_core.js') }}?v=8"></script>
+    <script src="{{ url_for('static', filename='js/d3_map_adapter.js') }}?v=8"></script>
+    <script src="{{ url_for('static', filename='js/clock.js') }}?v=8"></script>
 
+    <script id="dynamic-buttons-data" type="application/json">
+        {{ dynamic_buttons | tojson }}
+    </script>
     <script>
         // --- NOTICE MANAGEMENT ---
         async function deleteNotice(id) {
@@ -839,9 +938,9 @@
         }
 
         // Initial Load for admin
-        {% if session.get('role') == 'admin' %}
-        fetchNotamLists();
-        {% endif %}
+        if ("{{ session.get('role') }}" === 'admin') {
+            fetchNotamLists();
+        }
 
         // Public View Fetcher
         async function fetchActiveNotam() {
@@ -1077,7 +1176,7 @@
         }
 
         // Injected Dynamic Buttons Data
-        const dynamicButtons = {{ dynamic_buttons | tojson }};
+        const dynamicButtons = JSON.parse(document.getElementById('dynamic-buttons-data').textContent);
 
         // ... existing functions ...
 

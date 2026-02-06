@@ -1,5 +1,5 @@
 import os
-from flask import Blueprint, render_template, request, jsonify, session, redirect, url_for, send_from_directory
+from flask import Blueprint, render_template, request, jsonify, session, redirect, url_for, send_from_directory, current_app
 from datetime import datetime, timedelta
 from werkzeug.utils import secure_filename
 from core.config import (
@@ -15,7 +15,8 @@ from database import (
     get_sigmet_status,
     add_dynamic_button, delete_dynamic_button, get_dynamic_buttons_by_section,
     track_admin_upload, get_admin_uploads, delete_admin_upload,
-    get_employees, add_employee, update_employee, delete_employee
+    get_employees, add_employee, update_employee, delete_employee,
+    get_active_aerodrome_warnings
 )
 from .services import get_required_state_boundaries
 
@@ -24,6 +25,25 @@ map_bp = Blueprint('map', __name__)
 def allowed_file(filename):
     return '.' in filename and \
            filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
+@map_bp.route('/api/map/india_state')
+def get_india_state():
+    """Serve pre-compressed GeoJSON for performance"""
+    accept_encoding = request.headers.get('Accept-Encoding', '')
+    
+    # Path handling
+    # We need absolute path or relative to static folder
+    # Assuming app root is backend/
+    static_dir = os.path.join(current_app.root_path, '../frontend/static/geojson')
+    
+    if 'gzip' in accept_encoding and os.path.exists(os.path.join(static_dir, 'india_state.geojson.gz')):
+        response = send_from_directory(static_dir, 'india_state.geojson.gz')
+        response.headers['Content-Encoding'] = 'gzip'
+        response.headers['Content-Type'] = 'application/geo+json'
+        # content-length is set automatically by send_from_directory for the .gz file size
+        return response
+    
+    return send_from_directory(static_dir, 'india_state.geojson')
 
 @map_bp.route('/')
 def index():
@@ -356,8 +376,16 @@ def serve_file(type, filename):
 
 # --- AERODROME WARNING ROUTES ---
 
-
-
+@map_bp.route('/api/warnings/active')
+def get_active_warnings_api():
+    """
+    Get all active aerodrome warnings.
+    """
+    try:
+        warnings = get_active_aerodrome_warnings()
+        return jsonify({'success': True, 'data': warnings})
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
 
 # --- Dynamic Button Management API ---
 

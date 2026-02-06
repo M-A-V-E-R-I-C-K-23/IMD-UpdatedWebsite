@@ -93,7 +93,7 @@ button:hover {
 .back-btn:hover {
     background-color: #5a6268;
     transform: translateY(-1px);
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 /* Info Banner */
@@ -142,6 +142,99 @@ button:hover {
 .day-status.incomplete {
     background-color: #fff3cd;
     color: #856404;
+}
+
+/* Info Panels Grid */
+.info-panel-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    /* Force 3 columns strictly */
+    gap: 1.5rem;
+    padding: 1.5rem 2rem 0;
+}
+
+.info-card {
+    background-color: white;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+.card-header {
+    background-color: white;
+    color: #0d6efd;
+    /* Bootstrap Primary Blue */
+    font-weight: 700;
+    text-transform: uppercase;
+    font-size: 0.9rem;
+    padding: 10px 15px;
+    border-bottom: 1px solid var(--border-color);
+    letter-spacing: 0.5px;
+}
+
+.card-body {
+    padding: 15px;
+    font-size: 0.95rem;
+    flex-grow: 1;
+}
+
+.card-body.centered {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+}
+
+.btn-open {
+    display: inline-block;
+    background-color: #0d6efd;
+    color: white;
+    padding: 8px 16px;
+    text-decoration: none;
+    border-radius: 4px;
+    font-weight: 500;
+    transition: background-color 0.2s;
+}
+
+.btn-open:hover {
+    background-color: #0b5ed7;
+}
+
+.metar-box {
+    background-color: #f8f9fa;
+    padding: 10px;
+    border-radius: 4px;
+    font-family: 'Courier New', monospace;
+    font-size: 0.85rem;
+    color: #333;
+    border: 1px solid #e9ecef;
+    margin-top: 10px;
+    word-break: break-all;
+}
+
+.data-row {
+    margin-bottom: 5px;
+    color: #555;
+    font-weight: 500;
+}
+
+.loading-text {
+    color: #888;
+    font-style: italic;
+}
+
+.sigmet-active {
+    color: #dc3545;
+    font-weight: bold;
+}
+
+.sigmet-none {
+    color: #198754;
+    font-weight: bold;
 }
 
 /* Dashboard Grid */

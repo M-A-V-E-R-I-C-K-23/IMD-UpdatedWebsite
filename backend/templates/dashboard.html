@@ -7,7 +7,7 @@
     <title>IMD Meteorological Dashboard</title>
     <!-- Plotly.js via CDN -->
     <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}?v=2">
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
 </head>
 
@@ -60,6 +60,38 @@
             }
         }
     </style>
+
+    <!-- Info Panels (RVR, METAR, SIGMET) -->
+    <div class="info-panel-grid">
+        <!-- RVR Card -->
+        <div class="info-card">
+            <div class="card-header">LIVE RVR – MUMBAI</div>
+            <div class="card-body centered">
+                <p style="color: #666; margin-bottom: 15px;">Live RVR is hosted on CAMD portal</p>
+                <a href="https://camd.imd.gov.in/mumbai_rvr" target="_blank" class="btn-open">
+                    Open Live RVR (CAMD) ↗
+                </a>
+            </div>
+        </div>
+
+        <!-- Latest METAR Card -->
+        <div class="info-card">
+            <div class="card-header">LATEST METAR & TAF (<span id="metarStation">{{ selected_station }}</span>)</div>
+            <div class="card-body">
+                <div id="latestDataContent">
+                    <p class="loading-text">Loading latest data...</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- SIGMET Card -->
+        <div class="info-card">
+            <div class="card-header">SIGMET – MUMBAI FIR</div>
+            <div class="card-body centered" id="sigmetContent">
+                <p class="loading-text">Checking SIGMETs...</p>
+            </div>
+        </div>
+    </div>
 
     <main class="dashboard-grid">
         <!-- Temperature -->
@@ -114,11 +146,11 @@
                     const data = await res.json();
                     const banner = document.getElementById('warningBanner');
                     const text = document.getElementById('warningText');
-                    
+
                     if (data.active) {
                         banner.style.display = 'block';
                         // Add some spacing to the message for scrolling loop visual
-                        text.textContent = `⚠️ AERODROME WARNING FOR ${window.SELECTED_STATION}: ${data.message}    |    Valid until ${data.valid_to.substring(11,16)} UTC`;
+                        text.textContent = `⚠️ AERODROME WARNING FOR ${window.SELECTED_STATION}: ${data.message}    |    Valid until ${data.valid_to.substring(11, 16)} UTC`;
                     } else {
                         banner.style.display = 'none';
                     }
@@ -127,7 +159,7 @@
                 console.error("Warning fetch error:", e);
             }
         }
-        
+
         // Check immediately and every minute
         checkWarnings();
         setInterval(checkWarnings, 60000);
