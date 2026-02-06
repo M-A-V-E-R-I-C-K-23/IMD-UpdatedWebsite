@@ -13,7 +13,6 @@ from database import (
     add_notice_item, get_notice_items, delete_notice_item,
     create_notice_draft, publish_notice,
     get_sigmet_status,
-    create_aerodrome_warning, get_active_aerodrome_warnings, get_active_warning_for_station,
     add_dynamic_button, delete_dynamic_button, get_dynamic_buttons_by_section,
     track_admin_upload, get_admin_uploads, delete_admin_upload,
     get_employees, add_employee, update_employee, delete_employee
@@ -346,62 +345,7 @@ def serve_file(type, filename):
 
 # --- AERODROME WARNING ROUTES ---
 
-@map_bp.route('/api/warnings/create', methods=['POST'])
-def create_warning_route():
-    if session.get('role') != 'admin': 
-        return jsonify({'error': 'Unauthorized'}), 403
-        
-    data = request.json
-    station = data.get('station')
-    message = data.get('message')
-    duration_minutes = int(data.get('duration', 30)) # Default 30 mins
-    
-    if not station or not message:
-        return jsonify({'error': 'Missing data'}), 400
-        
-    # Calculate valid_to UTC
-    valid_from = datetime.utcnow()
-    valid_to = valid_from + timedelta(minutes=duration_minutes)
-    
-    # Store as ISO strings (DB expects DATETIME/TEXT usually) or datetime objects if adapter handles it
-    # Using ISO format string for consistency with sqlite
-    row_id = create_aerodrome_warning(
-        station, 
-        message, 
-        valid_from.isoformat(), 
-        valid_to.isoformat(), 
-        session.get('user')
-    )
-    
-    if row_id:
-        return jsonify({'success': True})
-    return jsonify({'success': False, 'error': 'Database error'})
 
-@map_bp.route('/api/warnings/active')
-def get_active_warnings_route():
-    """Returns list of stations with active warnings for the map."""
-    warnings = get_active_aerodrome_warnings()
-    # Return list of station codes for map highlighting
-    # and maybe details if needed (for tooltip?)
-    data = [{
-        'station': w['station_icao'], 
-        'message': w['message'],
-        'valid_to': w['valid_to']
-    } for w in warnings]
-    
-    return jsonify({'warnings': data})
-
-@map_bp.route('/api/warnings/<station>')
-def get_station_warning_route(station):
-    """Returns the active warning for a specific dashboard."""
-    w = get_active_warning_for_station(station)
-    if w:
-        return jsonify({
-            'active': True,
-            'message': w['message'],
-            'valid_to': w['valid_to']
-        })
-    return jsonify({'active': False})
 
 
 # --- Dynamic Button Management API ---

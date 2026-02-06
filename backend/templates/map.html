@@ -627,33 +627,6 @@
         </div>
     </div>
 
-    <!-- Warning Modal -->
-    <div id="warningModal" class="modal">
-        <div class="modal-content">
-            <span class="close-modal" onclick="closeModal('warningModal')">&times;</span>
-            <h3 style="margin-bottom:15px; color:#d9534f;">Issue Aerodrome Warning</h3>
-            <div class="modal-form">
-                <div class="form-group">
-                    <label>Station</label>
-                    <select id="warn-station" style="width:100%; padding:8px;">
-                        {% for code, name in stations.items() %}
-                        <option value="{{ code }}">{{ name }} ({{ code }})</option>
-                        {% endfor %}
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label>Warning Message</label>
-                    <textarea id="warn-message" rows="3"
-                        placeholder="e.g. Thunderstorm with gusty winds likely..."></textarea>
-                </div>
-                <div class="form-group">
-                    <label>Validity Duration (Minutes)</label>
-                    <input type="number" id="warn-duration" value="60" min="10" max="240">
-                </div>
-                <button onclick="submitWarning()" class="submit-btn" style="background:#d9534f;">Issue Warning</button>
-            </div>
-        </div>
-    </div>
 
     <!-- Notice Modal -->
     <div id="noticeModal" class="modal">
@@ -1116,82 +1089,6 @@
             }
         }
 
-        // --- AERODROME WARNING SYSTEM ---
-
-        async function submitWarning() {
-            const station = document.getElementById('warn-station').value;
-            const message = document.getElementById('warn-message').value;
-            const duration = document.getElementById('warn-duration').value;
-
-            if (!message) {
-                alert("Please enter a warning message");
-                return;
-            }
-
-            if (!confirm(`Issue warning for ${station} valid for ${duration} minutes?`)) return;
-
-            try {
-                const res = await fetch('/api/warnings/create', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ station, message, duration })
-                });
-                const data = await res.json();
-                if (data.success) {
-                    alert("Warning Issued Successfully");
-                    closeModal('warningModal');
-                    fetchActiveWarnings(); // Updating map immediately
-                } else {
-                    alert("Failed to issue warning: " + data.error);
-                }
-            } catch (e) {
-                console.error(e);
-                alert("Network error");
-            }
-        }
-
-        async function fetchActiveWarnings() {
-            try {
-                const res = await fetch('/api/warnings/active');
-                if (!res.ok) return;
-                const data = await res.json();
-
-                // Reset all pins first to Blue (default)
-                document.querySelectorAll('.station-group circle').forEach(el => {
-                    el.setAttribute('fill', '#007bff');
-                    el.removeAttribute('stroke');
-                    el.removeAttribute('stroke-width');
-                });
-
-                data.warnings.forEach(w => {
-                    const stationGroup = document.getElementById(`station-${w.station}`);
-                    if (stationGroup) {
-                        const circle = stationGroup.querySelector('circle');
-                        if (circle) {
-                            circle.setAttribute('fill', '#dc3545'); // Red
-                            circle.setAttribute('stroke', '#fff'); // White border
-                            circle.setAttribute('stroke-width', '2');
-
-                            let title = circle.querySelector('title');
-                            if (!title) {
-                                title = document.createElement('title');
-                                circle.appendChild(title);
-                            }
-                            // Helper formatUTC is defined in prev closure or we define locally/globally?
-                            // Re-using local Logic or assuming previous formatUTC availability
-                            // Safe to just show Validity time string from DB if ISO or simplify
-                            title.textContent = `WARNING: ${w.message} (Until ${w.valid_to.substring(11, 16)} UTC)`;
-                        }
-                    }
-                });
-            } catch (e) {
-                console.error("Error fetching warnings:", e);
-            }
-        }
-
-        // Poll warnings every 60s
-        setInterval(fetchActiveWarnings, 60000);
-        setTimeout(fetchActiveWarnings, 2000);
 
         // SIGMET Polling
         async function updateSigmetStatus() {
