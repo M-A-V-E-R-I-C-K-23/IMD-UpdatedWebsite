@@ -1,13 +1,12 @@
 /**
  * D3 Map Scoped CSS
- * Extracted from map_bc/style.css and scoped to .d3-map-scoped container
- * This prevents CSS conflicts with existing IMD dashboard styles
+ * Theme: Pseudo-Satellite Night
  */
 
 /* Map Container */
 .d3-map-scoped {
-    background: #07090F;
-    /* Storm Warning Ocean */
+    background: #030712;
+    /* Ocean / Background */
     position: relative;
     width: 100%;
     height: 100%;
@@ -31,9 +30,9 @@
 }
 
 .d3-map-scoped .map-btn {
-    background: rgba(7, 9, 15, 0.9);
-    border: 1px solid rgba(255, 214, 10, 0.2);
-    color: #F8F9FA;
+    background: rgba(3, 7, 18, 0.9);
+    border: 1px solid rgba(34, 211, 238, 0.3);
+    color: #E5E7EB;
     padding: 0.5rem 0.8rem;
     font-size: 0.75rem;
     font-weight: 700;
@@ -52,11 +51,10 @@
 }
 
 .d3-map-scoped .map-btn:hover {
-    background: #FFD60A;
-    /* Storm Yellow */
-    color: #07090F;
-    border-color: #FFD60A;
-    box-shadow: 0 0 15px rgba(255, 214, 10, 0.3);
+    background: rgba(34, 211, 238, 0.2);
+    color: #22D3EE;
+    border-color: #22D3EE;
+    box-shadow: 0 0 15px rgba(34, 211, 238, 0.2);
 }
 
 .d3-map-scoped .map-btn:active {
@@ -68,10 +66,10 @@
     position: absolute;
     bottom: 20px;
     right: 20px;
-    background: rgba(7, 9, 15, 0.85);
+    background: rgba(3, 7, 18, 0.85);
     padding: 0.5rem 1rem;
     border-radius: 6px;
-    border: 1px solid rgba(255, 214, 10, 0.2);
+    border: 1px solid rgba(34, 211, 238, 0.2);
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -79,55 +77,58 @@
 
 .d3-map-scoped #scale-bar-line {
     height: 3px;
-    background: #FFD60A;
-    border-left: 2px solid #FFD60A;
-    border-right: 2px solid #FFD60A;
+    background: #22D3EE;
+    border-left: 2px solid #22D3EE;
+    border-right: 2px solid #22D3EE;
     margin-bottom: 4px;
 }
 
 .d3-map-scoped #scale-bar-text {
     font-size: 0.7rem;
-    color: #94a3b8;
+    color: #E5E7EB;
     font-family: 'JetBrains Mono', monospace;
 }
 
 /* SVG Map Elements */
 .d3-map-scoped .state-color {
-    fill: #121826;
-    /* Storm Warning Land */
-    stroke: rgba(255, 255, 255, 0.02);
+    fill: #0B3D2E;
+    /* Land */
+    stroke: rgba(255, 255, 255, 0.05);
+    /* Faint Stroke on Land */
     stroke-width: 0.5px;
     transition: fill 0.3s ease;
 }
 
 .d3-map-scoped .state-color.muted {
-    fill: #121826;
+    fill: #082F24;
+    /* Slightly darker land */
 }
 
 .d3-map-scoped .state-color.highlighted {
-    fill: #1C2436;
-    /* Slightly lighter night for highlight */
+    fill: #134E3B;
+    /* Slightly brighter land */
 }
 
 .d3-map-scoped .state-map-label {
-    fill: #94a3b8;
-    opacity: 0.5;
+    fill: #E5E7EB;
+    opacity: 0.6;
     font-size: 8px;
     pointer-events: none;
 }
 
 .d3-map-scoped .state-map-label.muted {
-    fill: #94a3b8;
-    opacity: 0.5;
+    fill: #9CA3AF;
+    opacity: 0.4;
 }
 
 .d3-map-scoped .state-map-label.highlighted {
-    fill: #F8F9FA;
+    fill: #FFFFFF;
     opacity: 1;
 }
 
 .d3-map-scoped .graticule {
     stroke: rgba(255, 255, 255, 0.02);
+    /* Faint Grid */
     stroke-width: 0.5px;
     fill: none;
 }
@@ -135,8 +136,8 @@
 /* FIR Boundaries */
 .d3-map-scoped .fir-boundary {
     fill: none;
-    stroke: #FFD60A;
-    /* Storm Yellow */
+    stroke: #22D3EE;
+    /* Cyan FIR */
     stroke-width: 1.5;
     stroke-dasharray: 5, 5;
     opacity: 0.8;
@@ -145,25 +146,17 @@
 
 .d3-map-scoped .fir-mumbai {
     fill: none;
-    stroke: #FFD60A;
-    /* Storm Yellow */
-    stroke-width: 3px;
-    opacity: 0.8;
-    filter: drop-shadow(0 0 8px rgba(255, 214, 10, 0.5));
+    stroke: #22D3EE;
+    stroke-width: 2;
+    opacity: 1;
+    filter: drop-shadow(0 0 2px rgba(34, 211, 238, 0.3));
 }
 
-/* Canvas Overlay */
-.d3-map-scoped canvas {
-    position: absolute;
-    top: 0;
-    left: 0;
-    pointer-events: auto;
-    /* Allow click events on canvas */
-    z-index: 5;
-    /* Above SVG but below controls */
-}
-
-/* Performance Optimization: Disable expensive effects during zoom */
-.d3-map-scoped.is-zooming .state-color {
-    transition: none !important;
+.d3-map-scoped .fir-label {
+    fill: #22D3EE;
+    font-size: 10px;
+    font-weight: 700;
+    text-shadow: 0 0 3px rgba(0, 0, 0, 0.8);
+    opacity: 0.9;
+    letter-spacing: 1px;
 }

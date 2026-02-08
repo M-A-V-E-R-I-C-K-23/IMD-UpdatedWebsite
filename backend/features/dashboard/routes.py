@@ -175,11 +175,22 @@ def get_latest(station_code):
     if not obs:
         return jsonify({"status": "no_data", "station": station_code, "message": "No data available even after fetch"}), 404
         
+    # Ensure timestamp is ISO format with Z to indicate UTC
+    ts_val = obs['timestamp_utc']
+    if isinstance(ts_val, str):
+        # If it's a string like "2023-10-27 10:00:00", append Z if missing
+        if not ts_val.endswith('Z') and '+' not in ts_val:
+             ts_val = ts_val.replace(' ', 'T') + 'Z'
+    elif isinstance(ts_val, datetime):
+        ts_val = ts_val.isoformat()
+        if not ts_val.endswith('Z') and '+' not in ts_val:
+            ts_val += 'Z'
+
     return jsonify({
         "status": "success",
         "station": station_code,
         "data": {
-            "timestamp_utc": obs['timestamp_utc'],
+            "timestamp_utc": ts_val,
             "temperature": obs['temperature'],
             "dew_point": obs['dew_point'],
             "wind_direction": obs['wind_direction'],
