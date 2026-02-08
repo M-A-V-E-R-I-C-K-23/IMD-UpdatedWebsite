@@ -246,7 +246,7 @@ window.D3MapCore = (function () {
             context.translate(-12, -22); // Re-align Path2D origin
 
             // Determine Pin Color
-            let pinColor = "#2563eb"; // Default Blue
+            let pinColor = "#FFD60A"; // Storm Yellow
             let isDimmed = false;
             let hasAlert = false;
 
@@ -265,7 +265,7 @@ window.D3MapCore = (function () {
             }
 
             context.fillStyle = pinColor;
-            context.strokeStyle = "rgba(255, 255, 255, 0.9)";
+            context.strokeStyle = "#FFFFFF";
             context.lineWidth = 1.5; // Thicker border
 
             if (isDimmed) {
@@ -275,7 +275,7 @@ window.D3MapCore = (function () {
             // GLOW EFFECT: Only for selection (User requested NO glow for alerts)
             if (selectedAirportCode === airport.code) {
                 context.shadowBlur = 15;
-                context.shadowColor = "#38bdf8";
+                context.shadowColor = "#FFD60A";
             } else {
                 context.shadowBlur = 0; // Ensure no shadow residue
             }
@@ -297,8 +297,8 @@ window.D3MapCore = (function () {
             // 3. Draw Label
             context.shadowBlur = 0; // Reset shadow for text
             context.lineWidth = 2.5; // Reverted halo
-            context.strokeStyle = "#0f172a";
-            context.fillStyle = "#f1f5f9";
+            context.strokeStyle = "#07090F"; // Match Storm Warning Ocean background
+            context.fillStyle = "#F8F9FA";
 
             context.strokeText(airport.code, 12, -5);
             context.fillText(airport.code, 12, -5);

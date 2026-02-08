@@ -30,7 +30,7 @@
 
                 <!-- Workshops & Conferences Dropdown -->
                 <li class="nav-item dropdown">
-                    <a href="#" class="nav-link">Workshops & Conferences ▾</a>
+                    <a href="#" class="nav-link">Workshops & Training ▾</a>
                     <div class="dropdown-content simple-list">
                         <a href="#" class="dropdown-item">Upcoming Events</a>
                         <a href="#" class="dropdown-item">Past Workshops</a>
@@ -44,7 +44,8 @@
             {% if session.get('user') %}
             <span style="color: white; margin-right: 15px; font-size: 0.9rem;">Welcome, {{ session.user }}</span>
             {% if session.get('role') == 'admin' %}
-            <a href="{{ url_for('map.admin_uploads_view') }}" class="admin-login-btn" style="background:#4f46e5; margin-right:10px;">My Uploads</a>
+            <a href="{{ url_for('map.admin_uploads_view') }}" class="admin-login-btn"
+                style="background:#4f46e5; margin-right:10px;">My Uploads</a>
             {% endif %}
             <a href="{{ url_for('map.logout') }}" class="admin-login-btn">Logout</a>
             {% else %}

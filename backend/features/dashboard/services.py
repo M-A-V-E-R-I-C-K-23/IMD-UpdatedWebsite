@@ -64,6 +64,8 @@ def validate_day_completeness(observations):
         "max_hour": max(hours_covered) if hours_covered else None
     }
 
+import math
+
 def format_observations(observations):
     """
     Format a list of observation dictionaries for the frontend.
@@ -74,12 +76,36 @@ def format_observations(observations):
             obs_dt = datetime.fromisoformat(obs['timestamp_utc'])
             time_str = obs_dt.strftime("%H:%M")
             
+            # Calculate Relative Humidity (RH)
+            # RH = 100 * (EXP((17.625 * TD) / (243.04 + TD)) / EXP((17.625 * T) / (243.04 + T)))
+            t = obs.get('temperature')
+            td = obs.get('dew_point')
+            rh = None
+            
+            if t is not None and td is not None:
+                try:
+                    # Ensure float
+                    t = float(t)
+                    td = float(td)
+                    
+                    numerator = math.exp((17.625 * td) / (243.04 + td))
+                    denominator = math.exp((17.625 * t) / (243.04 + t))
+                    
+                    rh_val = 100 * (numerator / denominator)
+                    
+                    # Round to 2 decimals and clamp 0-100
+                    rh = round(max(0, min(100, rh_val)), 2)
+                except Exception as calc_err:
+                    logger.warning(f"RH split calc error: {calc_err}")
+                    rh = None
+
             formatted.append({
                 "time": time_str,
                 "hour": obs_dt.hour,
                 "full_ts": obs['timestamp_utc'],
                 "temperature": obs['temperature'],
                 "dew_point": obs['dew_point'],
+                "relative_humidity": rh,
                 "wind_speed": obs['wind_speed'],
                 "wind_direction": obs['wind_direction'],
                 "visibility": obs['visibility'],

@@ -6,8 +6,8 @@
 
 /* Map Container */
 .d3-map-scoped {
-    background: #020617;
-    /* Map ocean color */
+    background: #07090F;
+    /* Storm Warning Ocean */
     position: relative;
     width: 100%;
     height: 100%;
@@ -31,9 +31,9 @@
 }
 
 .d3-map-scoped .map-btn {
-    background: rgba(30, 41, 59, 0.9);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    color: #f1f5f9;
+    background: rgba(7, 9, 15, 0.9);
+    border: 1px solid rgba(255, 214, 10, 0.2);
+    color: #F8F9FA;
     padding: 0.5rem 0.8rem;
     font-size: 0.75rem;
     font-weight: 700;
@@ -52,10 +52,11 @@
 }
 
 .d3-map-scoped .map-btn:hover {
-    background: #38bdf8;
-    color: #0f172a;
-    border-color: #38bdf8;
-    box-shadow: 0 0 15px rgba(56, 189, 248, 0.3);
+    background: #FFD60A;
+    /* Storm Yellow */
+    color: #07090F;
+    border-color: #FFD60A;
+    box-shadow: 0 0 15px rgba(255, 214, 10, 0.3);
 }
 
 .d3-map-scoped .map-btn:active {
@@ -67,10 +68,10 @@
     position: absolute;
     bottom: 20px;
     right: 20px;
-    background: rgba(15, 23, 42, 0.85);
+    background: rgba(7, 9, 15, 0.85);
     padding: 0.5rem 1rem;
     border-radius: 6px;
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 214, 10, 0.2);
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -78,9 +79,9 @@
 
 .d3-map-scoped #scale-bar-line {
     height: 3px;
-    background: white;
-    border-left: 2px solid white;
-    border-right: 2px solid white;
+    background: #FFD60A;
+    border-left: 2px solid #FFD60A;
+    border-right: 2px solid #FFD60A;
     margin-bottom: 4px;
 }
 
@@ -92,20 +93,20 @@
 
 /* SVG Map Elements */
 .d3-map-scoped .state-color {
-    fill: #1e293b;
-    /* Muted state color */
-    stroke: rgba(255, 255, 255, 0.05);
+    fill: #121826;
+    /* Storm Warning Land */
+    stroke: rgba(255, 255, 255, 0.02);
     stroke-width: 0.5px;
     transition: fill 0.3s ease;
 }
 
 .d3-map-scoped .state-color.muted {
-    fill: #1e293b;
+    fill: #121826;
 }
 
 .d3-map-scoped .state-color.highlighted {
-    fill: #0f766e;
-    /* Teal highlight */
+    fill: #1C2436;
+    /* Slightly lighter night for highlight */
 }
 
 .d3-map-scoped .state-map-label {
@@ -121,12 +122,12 @@
 }
 
 .d3-map-scoped .state-map-label.highlighted {
-    fill: #f1f5f9;
+    fill: #F8F9FA;
     opacity: 1;
 }
 
 .d3-map-scoped .graticule {
-    stroke: rgba(255, 255, 255, 0.05);
+    stroke: rgba(255, 255, 255, 0.02);
     stroke-width: 0.5px;
     fill: none;
 }
@@ -134,17 +135,21 @@
 /* FIR Boundaries */
 .d3-map-scoped .fir-boundary {
     fill: none;
+    stroke: #FFD60A;
+    /* Storm Yellow */
     stroke-width: 1.5;
     stroke-dasharray: 5, 5;
+    opacity: 0.8;
     transition: all 0.3s ease;
 }
 
 .d3-map-scoped .fir-mumbai {
     fill: none;
-    stroke: #06b6d4;
-    /* Cyan */
+    stroke: #FFD60A;
+    /* Storm Yellow */
     stroke-width: 3px;
-    filter: drop-shadow(0 0 8px rgba(6, 182, 212, 0.8));
+    opacity: 0.8;
+    filter: drop-shadow(0 0 8px rgba(255, 214, 10, 0.5));
 }
 
 /* Canvas Overlay */

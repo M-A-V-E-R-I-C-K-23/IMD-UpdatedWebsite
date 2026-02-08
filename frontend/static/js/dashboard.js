@@ -64,6 +64,7 @@ document.addEventListener('DOMContentLoaded', function () {
         const chartConfigs = [
             { id: 'tempChart', key: 'temperature', title: 'Temperature (°C)', yaxis: 'Temperature (°C)' },
             { id: 'dewChart', key: 'dew_point', title: 'Dew Point (°C)', yaxis: 'Dew Point (°C)' },
+            { id: 'rhChart', key: 'relative_humidity', title: 'Relative Humidity (%)', yaxis: 'Humidity (%)' },
             { id: 'windSpeedChart', key: 'wind_speed', title: 'Wind Speed (kt)', yaxis: 'Wind Speed (kt)' },
             { id: 'windDirChart', key: 'wind_direction', title: 'Wind Direction (°)', yaxis: 'Direction (°)' },
             { id: 'visChart', key: 'visibility', title: 'Visibility (m)', yaxis: 'Visibility (m)' },
@@ -219,6 +220,7 @@ document.addEventListener('DOMContentLoaded', function () {
         const chartConfigs = [
             { id: 'tempChart', key: 'temperature' },
             { id: 'dewChart', key: 'dew_point' },
+            { id: 'rhChart', key: 'relative_humidity' },
             { id: 'windSpeedChart', key: 'wind_speed' },
             { id: 'windDirChart', key: 'wind_direction' },
             { id: 'visChart', key: 'visibility' },
