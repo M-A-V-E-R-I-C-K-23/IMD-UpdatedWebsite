@@ -9,7 +9,7 @@ from database import init_db, cleanup_expired_uploads
 # Import Blueprints
 from features.map import map_bp
 from features.dashboard import dashboard_bp, configure_rvr_scheduler
-from features.notam import notam_bp, configure_notam_scheduler
+from features.notam import notam_bp, configure_notam_scheduler 
 from features.ogimet import ogimet_bp, configure_scheduler
 
 def create_app():
