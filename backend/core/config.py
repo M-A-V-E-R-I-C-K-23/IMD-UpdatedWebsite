@@ -43,6 +43,29 @@ STATION_COORDS = {
     "VAJJ": [19.097, 72.833]
 }
 
+STATION_STATES = {
+    "VABB": "Maharashtra",
+    "VANP": "Maharashtra",
+    "VAOZ": "Maharashtra",
+    "VAAU": "Maharashtra",
+    "VAKP": "Maharashtra",
+    "VASN": "Maharashtra",
+    "VAJJ": "Maharashtra",
+    "VAAH": "Gujarat",
+    "VABO": "Gujarat",
+    "VASU": "Gujarat",
+    "VAID": "Madhya Pradesh",
+    "VABP": "Madhya Pradesh",
+    "VAGO": "Goa"
+}
+
+STATE_BOUNDARIES = {
+    "Maharashtra": "/static/geojson/maharashtra_districts.geojson",
+    "Gujarat": "/static/geojson/india_state.geojson",  # Fallback
+    "Madhya Pradesh": "/static/geojson/india_state.geojson", # Fallback
+    "Goa": "/static/geojson/india_state.geojson" # Fallback
+}
+
 MAHARASHTRA_CENTER = [20.5, 76.0]
 MAHARASHTRA_ZOOM = 1800
 
