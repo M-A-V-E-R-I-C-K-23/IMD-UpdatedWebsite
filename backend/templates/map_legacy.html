@@ -29,7 +29,7 @@
     <header class="map-header">
         <div class="header-content">
             <div class="logo-section">
-                <!-- Logo & Text Wrapper -->
+                
                 <div class="header-left">
                     <div class="logo-container">
                         <img src="{{ url_for('static', filename='images/imd_logo.png') }}" alt="IMD Logo"
@@ -39,7 +39,6 @@
                         <h1>India Meteorological Department (IMD)</h1>
                         <h2>Meteorological Watch Office - Mumbai</h2>
 
-                        <!-- Auth Status moved here -->
                         <div class="auth-status-line" style="font-size: 0.9rem; margin-top: 5px; font-weight: 300;">
                             {% if session.get('user') %}
                             Logged in as <strong>{{ session.user }}</strong> | <a href="{{ url_for('map.logout') }}"
@@ -54,16 +53,15 @@
             </div>
 
             <div class="header-right">
-                <!-- Admin Section -->
+                
                 <div class="admin-section">
                     {% if session.get('user') %}
-                    <!-- Kept only functional links not present elsewhere -->
+                    
                     <a href="#" class="admin-link"
                         onclick="document.getElementById('noticeModal').classList.add('show')">Post Notice</a>
                     {% endif %}
                 </div>
 
-                <!-- UTC Clock -->
                 <div class="utc-clock">
                     UTC: <span id="utc-time">--:--</span> | <span id="utc-date">-- --- ----</span>
                 </div>
@@ -71,7 +69,6 @@
 
     </header>
 
-    <!-- NOTAM Upload Modal -->
     <div id="notamModal" class="modal">
         <div class="modal-content">
             <span class="close-btn" onclick="closeModal('notamModal')">&times;</span>
@@ -87,9 +84,8 @@
         </div>
     </div>
 
-    <!-- Main Container -->
     <div class="dashboard-container">
-        <!-- Left Sidebar -->
+        
         <aside class="sidebar left-sidebar">
             <div class="sidebar-section">
                 <h3 class="sidebar-title">OPERATIONAL ACTIONS</h3>
@@ -97,28 +93,24 @@
                     class="action-btn warning-btn"
                     style="text-decoration:none; text-align:center; display:block; padding-top:10px;">Aerodrome ↗</a>
 
-                <!-- NOTAM Module -->
                 <div class="notam-module" id="notam-module">
                     <div class="notam-header">NOTAM</div>
 
-                    <!-- Admin Controls -->
                     {% if session.get('role') == 'admin' %}
                     <div class="notam-admin-panel">
-                        <!-- Tabs -->
+                        
                         <div class="notam-tabs">
                             <button class="tab-btn active" onclick="switchNotamTab('active')">Active</button>
                             <button class="tab-btn" onclick="switchNotamTab('drafts')">Drafts</button>
                             <button class="tab-btn" onclick="switchNotamTab('archived')">Archived</button>
                         </div>
 
-                        <!-- VIEW: ACTIVE -->
                         <div id="notam-view-active" class="notam-tab-content">
                             <div id="admin-active-list"></div>
                         </div>
 
-                        <!-- VIEW: DRAFTS -->
                         <div id="notam-view-drafts" class="notam-tab-content" style="display:none;">
-                            <!-- Upload Button -->
+                            
                             <form id="notam-upload-form" style="margin-bottom:10px; text-align:center;">
                                 <input type="file" name="file" id="notam-file-in" accept=".pdf" style="display: none;"
                                     onchange="uploadNotamDraft(this)">
@@ -130,14 +122,12 @@
                             <div id="admin-draft-list"></div>
                         </div>
 
-                        <!-- VIEW: ARCHIVED -->
                         <div id="notam-view-archived" class="notam-tab-content" style="display:none;">
                             <div id="admin-archived-list"></div>
                         </div>
                     </div>
                     {% endif %}
 
-                    <!-- Public Ticker Display -->
                     <div class="notam-ticker-container" id="notam-ticker" style="display: none;">
                         <div class="notam-ticker-wrap">
                             <div class="notam-ticker-item" id="notam-text"></div>
@@ -154,7 +144,6 @@
                 <button class="sidebar-btn disabled">Automatic TAF</button>
             </div>
 
-            <!-- News & Events (Official) -->
             <div class="sidebar-section news-sidebar-section">
                 <h3 class="sidebar-title board-header-sidebar">
                     📢 News & Events
@@ -162,7 +151,6 @@
                     <span class="sidebar-add-btn" onclick="openModal('newsModal')">+</span>
                     {% endif %}
                 </h3>
-
 
                 <div class="sidebar-content-scroll">
                     {% if news_items %}
@@ -197,13 +185,12 @@
                 </div>
             </div>
 
-            <!-- Notice Board (Internal) -->
             <div class="sidebar-section notice-sidebar-section">
                 <h3 class="sidebar-title board-header-sidebar">
                     📌 Notice Board
                     {% if session.get('user') %}
                     <span class="sidebar-add-btn" onclick="openModal('noticeModal')">+</span>
-                    <!-- Image Upload Btn -->
+                    
                     <form id="notice-img-form" style="display:inline;">
                         <input type="file" id="notice-img-in" style="display:none;" accept="image/*"
                             onchange="uploadDraft('notices', this)">
@@ -217,7 +204,7 @@
                     {% if notice_items %}
                     {% for item in notice_items %}
                     {% if item.status == 'DRAFT' %}
-                    <!-- Draft Notice -->
+                    
                     <div class="sidebar-item" style="border-left: 3px solid orange; background: #fffbe6;">
                         <div class="sidebar-item-header">
                             <span class="item-user">📝 Draft</span>
@@ -239,7 +226,7 @@
                         </div>
                     </div>
                     {% else %}
-                    <!-- Published Notice -->
+                    
                     <div class="sidebar-item">
                         <div class="sidebar-item-header">
                             <span class="item-user">👤 {{ item.uploaded_by }}</span>
@@ -247,7 +234,6 @@
                         </div>
                         <div class="sidebar-item-title">{{ item.title }}</div>
 
-                        <!-- Image Display -->
                         {% if item.filename and item.filename.lower().endswith(('.png', '.jpg', '.jpeg')) %}
                         <img src="{{ url_for('map.serve_file', type='notices', filename=item.filename) }}"
                             style="width:100%; max-height:200px; object-fit:contain; margin:5px 0; border-radius:4px;">
@@ -279,13 +265,12 @@
             </div>
         </aside>
 
-        <!-- Center Map Panel -->
         <div class="center-panel">
             <div class="map-wrapper">
                 <div class="map-overlay">
                     <div class="instruction-card">
                         <div class="instruction-icon">📍</div>
-                        <!-- <h3>Select an Airport</h3> -->
+                        
                         <p>Select airport for data</p>
                     </div>
                 </div>
@@ -293,9 +278,8 @@
             </div>
         </div>
 
-        <!-- Right Sidebar -->
         <aside class="sidebar right-sidebar">
-            <!-- OLBS Section -->
+            
             <div class="sidebar-section">
                 <h3 class="sidebar-title">OLBS</h3>
                 <div class="olbs-container">
@@ -317,7 +301,6 @@
         </aside>
     </div>
 
-    <!-- Bottom Info Panel -->
     <div class="bottom-info-container">
         <div class="info-card rvr-card bottom-card">
             <div class="card-header">
@@ -345,7 +328,7 @@
             </div>
             <div class="card-content" id="sigmet-content"
                 style="display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; gap: 10px;">
-                <!-- Content will be injected by JS -->
+                
                 <p style="color: #666; font-size: 0.9rem;">Loading status...</p>
 
                 <a href="https://aviationweather.gov/gfa/#sigmet" target="_blank" class="view-data-btn"
@@ -358,8 +341,6 @@
 
     </div>
 
-    <!-- Modals -->
-    <!-- Login Modal -->
     <div id="loginModal" class="modal">
         <div class="modal-content">
             <span class="close-modal" onclick="closeModal('loginModal')">&times;</span>
@@ -378,7 +359,6 @@
         </div>
     </div>
 
-    <!-- News Modal -->
     <div id="newsModal" class="modal">
         <div class="modal-content">
             <span class="close-modal" onclick="closeModal('newsModal')">&times;</span>
@@ -402,7 +382,6 @@
         </div>
     </div>
 
-    <!-- Notice Modal -->
     <div id="noticeModal" class="modal">
         <div class="modal-content">
             <span class="close-modal" onclick="closeModal('noticeModal')">&times;</span>

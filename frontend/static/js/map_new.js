@@ -1,8 +1,3 @@
-/**
- * MapCore - D3.js Map Engine
- * Handles rendering, zooming, and pin interactions.
- * Configured by MapAdapter.
- */
 
 window.MapCore = (function () {
     let mainSvg, insetSvg, mapViewport;
@@ -10,7 +5,6 @@ window.MapCore = (function () {
     let stations = [];
     let geoData = null;
 
-    // FIR Definitions
     const mumbaiFIR = {
         type: "Feature", properties: { name: "Mumbai FIR" },
         geometry: {
@@ -68,7 +62,6 @@ window.MapCore = (function () {
         mainSvg = d3.select("#main-map");
         insetSvg = d3.select("#inset-map");
 
-        // Live Clock
         setInterval(() => {
             const clockEl = document.getElementById("clock");
             if (clockEl) clockEl.innerText = new Date().toUTCString().split(' ')[4] + " UTC";
@@ -95,7 +88,6 @@ window.MapCore = (function () {
         const insetPath = d3.geoPath().projection(insetProjection);
 
         try {
-            // Use config URL or default
             const url = config?.geojsonUrl || '/static/geojson/india_state.geojson';
             console.log("MapCore: Fetching GeoJSON from", url);
             
@@ -103,10 +95,8 @@ window.MapCore = (function () {
             if (!response.ok) throw new Error(`GeoJSON fetch failed ${response.status}`);
             geoData = await response.json();
 
-            // Zoom Layer
             zoomLayer = mainSvg.append("g").attr("id", "zoom-container");
 
-            // Setup Zoom
             const zoom = d3.zoom()
                 .scaleExtent([0.5, 8])
                 .on("zoom", (event) => {
@@ -117,14 +107,12 @@ window.MapCore = (function () {
                 });
             mainSvg.call(zoom);
 
-            // Render Maps
             renderLayer(zoomLayer, mainProjection, path, false);
             const insetGroup = insetSvg.append("g");
             renderLayer(insetGroup, insetProjection, insetPath, true);
 
             updateScaleBar(1, width, height);
 
-            // Setup Controls
             d3.select("#zoom-in").on("click", () => mainSvg.transition().call(zoom.scaleBy, 1.5));
             d3.select("#zoom-out").on("click", () => mainSvg.transition().call(zoom.scaleBy, 0.6));
             d3.select("#zoom-reset").on("click", () => mainSvg.transition().call(zoom.transform, d3.zoomIdentity));
@@ -136,7 +124,6 @@ window.MapCore = (function () {
     }
 
     function renderLayer(target, projection, geoPath, isInset) {
-        // States
         target.append("g")
             .selectAll("path")
             .data(geoData.features)
@@ -144,7 +131,6 @@ window.MapCore = (function () {
             .attr("d", geoPath)
             .attr("class", "state-color muted");
 
-        // FIRs (Main Only)
         if (!isInset) {
             const firs = [
                 { data: mumbaiFIR, class: "fir-mumbai" },
@@ -160,7 +146,6 @@ window.MapCore = (function () {
             });
         }
 
-        // Labels
         target.append("g").attr("class", "state-label-group")
             .selectAll("text")
             .data(geoData.features)
@@ -174,13 +159,11 @@ window.MapCore = (function () {
             .attr("font-size", isInset ? "12px" : "8px")
             .text(d => d.properties.NAME_1 || d.properties.st_nm || d.properties.NAME);
 
-        // Graticule
         target.append("path")
             .datum(d3.geoGraticule().step([5, 5]))
             .attr("class", "graticule")
             .attr("d", geoPath);
 
-        // Pins
         const pinGroup = target.append("g");
         const dropletPath = "M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z";
 
@@ -219,22 +202,14 @@ window.MapCore = (function () {
                 .text(isInset ? a.name : a.icao);
         });
 
-        // Populate Sidebar (Since we're here, let's trigger it or let Adapter handle it? 
-        // Adapter uses MapCore only for MAP stuff. The sidebar is HTML. 
-        // Let's populate Sidebar here since we have the data loop, 
-        // OR better: dispatch an event that data is loaded and let Adapter populate sidebar?
-        // For simplicity, let's do it here as it was in original script, but using data.)
-
         const sidebarList = d3.select("#airport-nav-list");
         if (!sidebarList.empty()) {
-            sidebarList.html(""); // Clear
+            sidebarList.html("");
             stations.forEach(a => {
                 const li = sidebarList.append("li")
                     .attr("data-icao", a.icao)
                     .on("click", () => {
                         highlight(a.icao);
-                        // Event bubbling will be caught by Adapter listener too, 
-                        // but highlighting is visual.
                     });
                 li.html(`<span class="nav-name">${a.name}</span><span class="nav-code">${a.icao}</span>`);
             });
@@ -244,10 +219,9 @@ window.MapCore = (function () {
     function updateScaleBar(k, width, height) {
         const center = mainProjection.invert([width / 2, height / 2]);
         const p1 = mainProjection.invert([width / 2, height / 2]);
-        const p2 = mainProjection.invert([width / 2 + 100 / k, height / 2]); // 100 screen px
+        const p2 = mainProjection.invert([width / 2 + 100 / k, height / 2]);
 
         if (p1 && p2) {
-            // Distance Calculation (Haversine approx)
             const R = 6371;
             const dLat = (p2[1] - p1[1]) * Math.PI / 180;
             const dLon = (p2[0] - p1[0]) * Math.PI / 180;
@@ -257,7 +231,6 @@ window.MapCore = (function () {
             const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
             const kmPer100Px = R * c;
 
-            // Logic to snap to nice numbers
             const niceNumbers = [10, 20, 50, 100, 200, 500, 1000, 2000];
             let displayKm = 500, displayPx = 100;
 
@@ -280,20 +253,14 @@ window.MapCore = (function () {
     }
 
     function highlight(icao) {
-        // Remove active class from all
         d3.selectAll(".airport-pin").classed("active", false);
         d3.selectAll("#airport-nav-list li").classed("active", false);
 
-        // Add to selected
         const pins = d3.selectAll(`#pin-${icao}-main, #pin-${icao}-inset`);
         pins.classed("active", true);
 
-        // Highlight sidebar
         d3.select(`#airport-nav-list li[data-icao='${icao}']`).classed("active", true);
 
-        // Fire event so Adapter can update info panel
-        // (If called from map click, event fires there. If called from sidebar, we fire here)
-        // Find data
         const station = stations.find(s => s.icao === icao);
         if (station) {
             fireEvent('airport-selected', station);

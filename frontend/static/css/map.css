@@ -1,4 +1,4 @@
-/* Map Page Styles */
+
 :root {
     --primary-color: #0056b3;
     --secondary-color: #f0f4f8;
@@ -20,7 +20,6 @@ body {
     overflow-x: hidden;
 }
 
-/* Header */
 .map-header {
     background: linear-gradient(135deg, #0056b3 0%, #003d82 100%);
     color: white;
@@ -83,7 +82,6 @@ body {
     border-radius: 4px;
 }
 
-/* Modals */
 .modal {
     display: none;
     position: fixed;
@@ -169,7 +167,6 @@ body {
     opacity: 0.8;
 }
 
-/* Header Layout */
 .header-left {
     display: flex;
     align-items: center;
@@ -188,27 +185,20 @@ body {
 
 .imd-logo {
     height: 48px;
-    /* Slightly smaller to fit in padded container */
     width: auto;
-    /* Clean crop to remove excess internal whitespace */
     clip-path: inset(5% 15% 5% 15%);
     display: block;
 }
 
-/* Map Container */
-/* Dashboard Layout */
-/* Dashboard Layout */
 .dashboard-container {
     display: flex;
     height: calc(75vh - 60px);
-    /* Fill most of the screen, leaving space for bottom panel */
     min-height: 400px;
     background-color: #f0f2f5;
     padding: 10px;
     gap: 10px;
 }
 
-/* Sidebars */
 .sidebar {
     width: 250px;
     background: white;
@@ -235,7 +225,6 @@ body {
     padding-bottom: 5px;
 }
 
-/* NOTAM Module */
 .notam-module {
     margin-top: 10px;
     border: 1px solid #ccc;
@@ -249,7 +238,6 @@ body {
     border-color: #ffc107;
     box-shadow: 0 0 5px rgba(255, 193, 7, 0.5);
     background-color: #fff9e6;
-    /* Light yellow bg when active */
 }
 
 .notam-header {
@@ -263,11 +251,9 @@ body {
 
 .notam-module.notam-active .notam-header {
     background-color: #ffc107;
-    /* Aviation Amber */
     color: #000;
 }
 
-/* Admin Controls in Sidebar */
 .notam-admin-panel {
     padding: 10px;
     border-bottom: 1px solid #eee;
@@ -299,7 +285,6 @@ body {
     text-align: left;
     background: #333;
     color: #0f0;
-    /* Terminal green text */
     padding: 5px;
     font-family: monospace;
     font-size: 0.75rem;
@@ -318,7 +303,6 @@ body {
     margin-top: 8px;
     background-color: transparent;
     color: #d9534f;
-    /* Bootstrap danger red */
     border: 1px solid #d9534f;
     padding: 4px 10px;
     font-size: 0.8rem;
@@ -334,15 +318,12 @@ body {
     box-shadow: 0 2px 4px rgba(217, 83, 79, 0.3);
 }
 
-/* NOTAM Ticker Styles */
 .notam-ticker-container {
     width: 100%;
     background-color: #ffc107;
-    /* Aviation Yellow/Amber */
     overflow: hidden;
     height: 30px;
     display: flex;
-    /* Centering text vertically */
     align-items: center;
     border-top: 1px solid #e0a800;
 }
@@ -351,7 +332,6 @@ body {
     width: 100%;
     overflow: hidden;
     padding-left: 100%;
-    /* Start off-screen */
     box-sizing: content-box;
 }
 
@@ -359,13 +339,11 @@ body {
     display: inline-block;
     white-space: nowrap;
     padding-right: 100%;
-    /* Ensure loop spacing */
     box-sizing: content-box;
     animation: ticker 15s linear infinite;
     font-weight: 700;
     color: black;
     font-family: monospace;
-    /* Aviation feel */
 }
 
 @keyframes ticker {
@@ -394,7 +372,6 @@ body {
     color: #333;
 }
 
-/* Left Sidebar specific buttons */
 .action-btn {
     padding: 10px;
     border: none;
@@ -410,9 +387,7 @@ body {
 
 .action-btn:hover {
     background-color: #e3f2fd;
-    /* Light Blue tint */
     color: #0d47a1;
-    /* Darker Text */
     transform: translateX(5px);
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15);
 }
@@ -449,9 +424,6 @@ body {
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
 }
 
-/* Restore modal styles that were replaced by accident if any, or ensuring they are present */
-/* Modals need to stay! Re-adding them here if the previous chunk wiped them. */
-/* Modals */
 .modal {
     display: none;
     position: fixed;
@@ -522,7 +494,6 @@ body {
     background: #f9f9f9;
 }
 
-/* Right Sidebar specific links */
 .sidebar-link {
     padding: 10px 15px;
     background: #f8f9fa;
@@ -552,7 +523,6 @@ body {
     color: #333;
     font-size: 0.9rem;
     border-left: 4px solid #0056b3;
-    /* Match sidebar theme */
     margin-bottom: 5px;
     display: block;
     transition: transform 0.2s ease, background-color 0.2s ease, color 0.2s ease;
@@ -566,7 +536,6 @@ body {
     box-shadow: 1px 1px 3px rgba(0, 0, 0, 0.1);
 }
 
-/* Center Map Panel */
 .center-panel {
     flex: 1;
     position: relative;
@@ -588,7 +557,6 @@ body {
     background-color: #aad3df;
 }
 
-/* Map Overlay */
 .map-overlay {
     position: absolute;
     top: 20px;
@@ -611,7 +579,6 @@ body {
     color: #dc3545;
 }
 
-/* Bottom Info Panel */
 .bottom-info-container {
     display: grid;
     grid-template-columns: 1fr 1fr 1fr;
@@ -664,7 +631,6 @@ body {
     position: relative;
 }
 
-/* Bottom Cards Uniform Height */
 .bottom-card {
     min-height: 180px;
     max-height: 180px;
@@ -674,10 +640,8 @@ body {
 
 .rvr-card {
     flex: 1;
-    /* Make it equal width to others if needed, or keep flex-grow */
 }
 
-/* Compact RVR Content */
 .rvr-content-compact {
     flex: 1;
     display: flex;
@@ -708,15 +672,12 @@ body {
 .rvr-btn:hover {
     background-color: #004494;
     transform: none;
-    /* Override potential view-data-btn transform if desired, or keep it */
     box-shadow: none;
 }
 
 
 .rvr-fallback {
     display: none;
-    /* Hidden by default, useful if using JS to detect failure */
-    /* Position absolute logic could be added if we were overlaying */
     position: absolute;
     top: 50%;
     left: 50%;
@@ -732,14 +693,11 @@ body {
     color: #aaa;
 }
 
-/* Sidebar Scrolling */
 .left-sidebar {
     overflow-y: auto;
-    /* Ensure it scrolls independently */
     max-height: 100%;
 }
 
-/* Sidebar Content Boards */
 .news-sidebar-section,
 .notice-sidebar-section {
     background: white;
@@ -749,10 +707,8 @@ body {
     display: flex;
     flex-direction: column;
     max-height: 300px;
-    /* Limit height of each section */
 }
 
-/* Header with Add Button */
 .board-header-sidebar {
     display: flex;
     justify-content: space-between;
@@ -776,14 +732,12 @@ body {
     color: #003d82;
 }
 
-/* Scrollable Content Area */
 .sidebar-content-scroll {
     overflow-y: auto;
     flex: 1;
     padding: 5px;
 }
 
-/* Sidebar Items */
 .sidebar-item {
     border-bottom: 1px solid #eee;
     padding: 8px 5px;
@@ -857,7 +811,6 @@ body {
     padding: 15px;
 }
 
-/* Footer Adjustments */
 .map-footer {
     padding: 5px;
     font-size: 0.75rem;
@@ -865,7 +818,6 @@ body {
     color: #fff;
 }
 
-/* Custom Airport Markers */
 .airport-marker {
     position: relative;
 }
@@ -931,7 +883,6 @@ body {
     }
 }
 
-/* Airport Labels */
 .airport-label {
     background-color: rgba(255, 255, 255, 0.85);
     border: 1px solid rgba(0, 0, 0, 0.1);
@@ -944,7 +895,6 @@ body {
     color: #333;
     white-space: nowrap;
     pointer-events: auto;
-    /* Allow clicking on label */
     cursor: pointer;
 }
 
@@ -952,12 +902,10 @@ body {
     border-right-color: rgba(255, 255, 255, 0.85);
 }
 
-/* Hide labels at low zoom (controlled by JS adding class to map) */
 .map-low-zoom .airport-label {
     display: none;
 }
 
-/* Popup Styling */
 .leaflet-popup-content-wrapper {
     border-radius: 8px;
     padding: 0;
@@ -997,7 +945,6 @@ body {
     box-shadow: 0 4px 8px rgba(0, 86, 179, 0.3);
 }
 
-/* OLBS Container */
 .olbs-container {
     display: flex;
     gap: 10px;
@@ -1028,7 +975,6 @@ body {
     margin: 0;
 }
 
-/* Responsive */
 @media (max-width: 768px) {
     .map-header {
         padding: 1rem;
@@ -1047,7 +993,6 @@ body {
         right: 10px;
         left: 10px;
         display: none;
-        /* Hide instructions on small screens to save space */
     }
 
     .instruction-card {
@@ -1059,7 +1004,6 @@ body {
     }
 }
 
-/* Operational Quick Links Section */
 .quick-links-section {
     background-color: #f9f9f9;
     padding: 2rem 1rem;
@@ -1123,7 +1067,6 @@ body {
     border: none;
 }
 
-/* Responsive adjustments for quick links */
 @media (max-width: 600px) {
     .links-grid {
         grid-template-columns: repeat(2, 1fr);
@@ -1143,13 +1086,11 @@ body {
     }
 }
 
-/* Content Boards (News & Notices) */
 .content-boards-container {
     display: flex;
     gap: 10px;
     padding: 0 10px 10px 10px;
     height: 35vh;
-    /* Fixed height for consistency */
     min-height: 250px;
 }
 
@@ -1165,7 +1106,6 @@ body {
 
 .board-header {
     background: #f1f3f5;
-    /* Slightly darker than card header */
     padding: 10px 15px;
     font-weight: 700;
     font-size: 0.9rem;
@@ -1254,7 +1194,6 @@ body {
     color: #a71d2a;
 }
 
-/* General Typography Refinements */
 h1,
 h2,
 h3,
@@ -1264,7 +1203,6 @@ h4 {
 
 .card-header {
     font-size: 0.9rem;
-    /* Normalized with board header */
     letter-spacing: 0.5px;
 }
 
@@ -1273,7 +1211,6 @@ h4 {
     letter-spacing: 0.3px;
 }
 
-/* Secondary Navbar */
 .secondary-navbar {
     background-color: white;
     height: 48px;
@@ -1332,7 +1269,6 @@ h4 {
     background-color: #f8f9fa;
 }
 
-/* Dropdown */
 .dropdown-content {
     display: none;
     position: absolute;
@@ -1350,7 +1286,6 @@ h4 {
     display: block;
 }
 
-/* Head Card */
 .head-card {
     padding: 15px;
     display: flex;
@@ -1421,7 +1356,6 @@ h4 {
     color: var(--primary-color);
 }
 
-/* Simple List Dropdown */
 .simple-list {
     padding: 8px 0;
     min-width: 220px;
@@ -1441,7 +1375,6 @@ h4 {
     color: var(--primary-color);
 }
 
-/* Admin Button */
 .admin-login-btn {
     background: var(--primary-color);
     color: white;
@@ -1458,7 +1391,6 @@ h4 {
     text-decoration: none;
 }
 
-/* Mobile Toggle */
 .menu-toggle {
     display: none;
     background: none;
@@ -1498,8 +1430,6 @@ h4 {
     position: absolute;
     top: 10px;
     right: 20px;
-    /* Adjusted to be visible outside content or inside? Inside logic. */
-    /* Actually better put inside content */
     left: 270px;
     color: white;
     font-size: 2rem;
@@ -1519,7 +1449,6 @@ h4 {
     font-weight: bold;
 }
 
-/* Responsive Breakpoint */
 @media (max-width: 768px) {
     .nav-menu {
         display: none;
@@ -1534,7 +1463,6 @@ h4 {
     }
 }
 
-/* Delete Button Styling */
 .sidebar-delete-btn {
     font-weight: bold;
     cursor: pointer;
@@ -1555,7 +1483,6 @@ h4 {
     background: #c82333;
 }
 
-/* Modal Styling Improvements */
 #deleteButtonModal .modal-content {
     border-top: 5px solid #dc3545;
 }

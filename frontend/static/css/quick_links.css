@@ -1,4 +1,4 @@
-/* Operational Quick Links Section */
+
 .quick-links-section {
     background-color: #f9f9f9;
     padding: 2rem 1rem;
@@ -61,7 +61,6 @@
     background-color: #f5f5f5;
 }
 
-/* Responsive adjustments for quick links */
 @media (max-width: 600px) {
     .links-grid {
         grid-template-columns: repeat(2, 1fr);

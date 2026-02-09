@@ -17,17 +17,14 @@ def download_and_extract_districts():
             print("Error: No 'features' key in GeoJSON")
             return
 
-        # Check properties of the first feature to identify state key
         if len(data['features']) > 0:
             print("First feature properties:", data['features'][0]['properties'])
         
         maharashtra_features = []
-        
-        # Look for Maharashtra in properties
-        # Common keys: NAME_1, ST_NM, state, etc.
+
         for feature in data['features']:
             props = feature['properties']
-            # aggressive matching for Maharashtra
+            
             is_maharashtra = False
             for key, value in props.items():
                 if isinstance(value, str) and 'Maharashtra' in value:

@@ -32,14 +32,12 @@ def upload_notam():
         file.save(filepath)
         upload_id = track_admin_upload(filename, 'pdf', f"notams/{filename}", session.get('user'))
         
-        # Parse PDF
         result = parse_notam_pdf(filepath)
         
         if result['success']:
-            # Save as DRAFT
             notam_id = create_notam_draft(
                 filename, 
-                result.get('raw_data', {}).get('raw_text', ''), # Parser doesn't return raw text, handled below
+                result.get('raw_data', {}).get('raw_text', ''),
                 result['formatted_text'],
                 result['valid_until'],
                 session.get('user'),
@@ -79,7 +77,6 @@ def list_notams():
 
 @notam_bp.route('/api/notam/active')
 def get_public_notam():
-    # Public facing valid NOTAM
     notam = get_public_active_notam()
     if notam:
         return jsonify({
@@ -92,10 +89,6 @@ def get_public_notam():
 def publish_notam(notam_id):
     if session.get('role') != 'admin':
         return jsonify({'error': 'Unauthorized'}), 403
-    
-    # Logic: Archive any other active NOTAMs? Maybe not required if multiple valid supported.
-    # For now, let's assume we can have multiple or business rule says 1.
-    # User request doesn't specify limit, so just publish.
     
     if update_notam_status(notam_id, 'ACTIVE'):
         return jsonify({'success': True})
@@ -137,10 +130,6 @@ def delete_notam_route(notam_id):
 
 @notam_bp.route('/api/notam/generate', methods=['POST'])
 def generate_notam_text():
-    """
-    Parses a PDF and returns the text WITHOUT saving to DB.
-    For manual copy/verification.
-    """
     file = request.files.get('file')
     if not file or file.filename == '':
         return jsonify({'success': False, 'error': 'No file selected'}), 400

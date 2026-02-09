@@ -18,7 +18,6 @@
     {% include 'includes/header.html' %}
     {% include 'includes/navbar.html' %}
 
-    <!-- NOTAM Upload Modal -->
     <div id="notamModal" class="modal">
         <div class="modal-content">
             <span class="close-btn" onclick="closeModal('notamModal')">&times;</span>
@@ -34,9 +33,7 @@
         </div>
     </div>
 
-    <!-- Main Container -->
     <div class="dashboard-container">
-        <!-- Left Sidebar -->
         <aside class="sidebar left-sidebar">
             <div class="sidebar-section">
                 <h3 class="sidebar-title">
@@ -48,35 +45,26 @@
                     {% endif %}
                 </h3>
 
-
-
-
                 <a href="https://121.240.10.8:8000" target="_blank" rel="noopener noreferrer"
                     class="action-btn warning-btn"
                     style="text-decoration:none; text-align:center; display:block; padding-top:10px;">Aerodrome ↗</a>
 
-                <!-- NOTAM Module -->
                 <div class="notam-module" id="notam-module">
                     <div class="notam-header">NOTAM</div>
 
-                    <!-- Admin Controls -->
                     {% if session.get('role') == 'admin' %}
                     <div class="notam-admin-panel">
-                        <!-- Tabs -->
                         <div class="notam-tabs">
                             <button class="tab-btn active" onclick="switchNotamTab('active')">Active</button>
                             <button class="tab-btn" onclick="switchNotamTab('drafts')">Drafts</button>
                             <button class="tab-btn" onclick="switchNotamTab('archived')">Archived</button>
                         </div>
 
-                        <!-- VIEW: ACTIVE -->
                         <div id="notam-view-active" class="notam-tab-content">
                             <div id="admin-active-list"></div>
                         </div>
 
-                        <!-- VIEW: DRAFTS -->
                         <div id="notam-view-drafts" class="notam-tab-content" style="display:none;">
-                            <!-- Upload Button -->
                             <form id="notam-upload-form" style="margin-bottom:10px; text-align:center;">
                                 <input type="file" name="file" id="notam-file-in" accept=".pdf" style="display: none;"
                                     onchange="uploadNotamDraft(this)">
@@ -88,14 +76,12 @@
                             <div id="admin-draft-list"></div>
                         </div>
 
-                        <!-- VIEW: ARCHIVED -->
                         <div id="notam-view-archived" class="notam-tab-content" style="display:none;">
                             <div id="admin-archived-list"></div>
                         </div>
                     </div>
                     {% endif %}
 
-                    <!-- Public Ticker Display -->
                     <div class="notam-ticker-container" id="notam-ticker" style="display: none;">
                         <div class="notam-ticker-wrap">
                             <div class="notam-ticker-item" id="notam-text"></div>
@@ -141,7 +127,6 @@
                 {% endif %}
             </div>
 
-            <!-- News & Events (Official) -->
             <div class="sidebar-section news-sidebar-section">
                 <h3 class="sidebar-title board-header-sidebar">
                     📢 News & Events
@@ -154,7 +139,6 @@
                     {% if news_items %}
                     {% for item in news_items %}
                     {% if item.status == 'DRAFT' %}
-                    <!-- Draft News -->
                     <div class="sidebar-item" style="border-left: 3px solid orange; background: #fffbe6;">
                         <div class="sidebar-item-header">
                             <span class="item-user">📝 Draft</span>
@@ -188,7 +172,6 @@
                         </div>
                     </div>
                     {% else %}
-                    <!-- Published News -->
                     <div class="sidebar-item">
                         <div class="sidebar-item-header">
                             <span class="item-date">{{ item.upload_time }}</span>
@@ -229,7 +212,6 @@
                 </div>
             </div>
 
-            <!-- Notice Board (Internal) -->
             <div class="sidebar-section notice-sidebar-section">
                 <h3 class="sidebar-title board-header-sidebar">
                     📌 Notice Board
@@ -241,7 +223,6 @@
                     {% if notice_items %}
                     {% for item in notice_items %}
                     {% if item.status == 'DRAFT' %}
-                    <!-- Draft Notice -->
                     <div class="sidebar-item" style="border-left: 3px solid orange; background: #fffbe6;">
                         <div class="sidebar-item-header">
                             <span class="item-user">📝 Draft</span>
@@ -263,7 +244,6 @@
                         </div>
                     </div>
                     {% else %}
-                    <!-- Published Notice -->
                     <div class="sidebar-item">
                         <div class="sidebar-item-header">
                             <span class="item-user">👤 {{ item.uploaded_by }}</span>
@@ -271,7 +251,6 @@
                         </div>
                         <div class="sidebar-item-title">{{ item.title }}</div>
 
-                        <!-- Image Display -->
                         {% if item.filename and item.filename.lower().endswith(('.png', '.jpg', '.jpeg')) %}
                         <img src="{{ url_for('map.serve_file', type='notices', filename=item.filename) }}"
                             style="width:100%; max-height:200px; object-fit:contain; margin:5px 0; border-radius:4px;">
@@ -303,20 +282,17 @@
             </div>
         </aside>
 
-        <!-- Center Map Panel -->
         <div class="center-panel">
             <div class="map-wrapper">
                 <div class="d3-map-scoped" id="map-viewport">
                     <svg id="d3-map-svg"></svg>
 
-                    <!-- Map Controls -->
                     <div id="map-controls">
                         <button class="map-btn" id="zoom-in">+</button>
                         <button class="map-btn" id="zoom-out">-</button>
                         <button class="map-btn" id="zoom-reset">RESET</button>
                     </div>
 
-                    <!-- Scale Bar -->
                     <div id="scale-bar-container">
                         <div id="scale-bar-line"></div>
                         <div id="scale-bar-text">500 km</div>
@@ -325,9 +301,7 @@
             </div>
         </div>
 
-        <!-- Right Sidebar -->
         <aside class="sidebar right-sidebar">
-            <!-- OLBS Section -->
             <div class="sidebar-section">
                 <h3 class="sidebar-title">
                     OLBS
@@ -386,7 +360,6 @@
         </aside>
     </div>
 
-    <!-- Bottom Info Panel -->
     <div class="bottom-info-container">
         <div class="info-card rvr-card bottom-card">
             <div class="card-header">
@@ -410,7 +383,6 @@
             <div class="card-header">Latest METAR & TAF (VABB)</div>
             <div class="card-content" id="latestDataContent">
                 <div class="loading-text">Loading latest data...</div>
-                <!-- Content injected by JS -->
             </div>
         </div>
         <div class="info-card bottom-card" id="sigmet-card">
@@ -420,7 +392,6 @@
             <div class="card-content" id="sigmetContent"
                 style="display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; gap: 10px;">
                 <div class="loading-text">Loading SIGMET status...</div>
-                <!-- Content injected by JS -->
             </div>
         </div>
     </div>
@@ -428,7 +399,6 @@
     </div>
 
     <script>
-        // --- WEATHER DATA FETCHING ---
         const STATION_CODE = 'VABB';
 
         function fetchLatestMetar() {
@@ -449,11 +419,9 @@
                         return;
                     }
 
-                    // Format Time (HH:MM UTC)
                     const obsTime = new Date(obs.timestamp_utc);
                     const timeStr = obsTime.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', timeZone: 'UTC' }) + ' UTC';
 
-                    // Format Date (DD Mon)
                     const dateStr = obsTime.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', timeZone: 'UTC' });
 
                     let html = `
@@ -485,8 +453,7 @@
                 .then(res => res.json())
                 .then(data => {
                     if (data.is_active) {
-                        // ACTIVE SIGMET
-                        card.style.borderColor = '#dc3545'; // Red border
+                        card.style.borderColor = '#dc3545';
                         container.innerHTML = `
                             <div class="sigmet-active">Active SIGMET Reported</div>
                             <div style="font-size:0.9rem; margin-top:5px;">
@@ -498,8 +465,7 @@
                             </a>
                         `;
                     } else {
-                        // NO SIGMET
-                        card.style.borderColor = '#28a745'; // Green border
+                        card.style.borderColor = '#28a745';
                         container.innerHTML = `
                             <div class="sigmet-none">No Active SIGMET</div>
                             <div style="font-size: 0.85rem; color: #666; margin-top:5px;">
@@ -520,19 +486,14 @@
                 });
         }
 
-        // Init
         document.addEventListener('DOMContentLoaded', () => {
             fetchLatestMetar();
             fetchSigmetStatus();
-            // Refresh every 5 mins
             setInterval(fetchLatestMetar, 300000);
             setInterval(fetchSigmetStatus, 300000);
         });
     </script>
 
-
-    <!-- Modals -->
-    <!-- Login Modal -->
     <div id="loginModal" class="modal">
         <div class="modal-content">
             <span class="close-modal" onclick="closeModal('loginModal')">&times;</span>
@@ -555,7 +516,6 @@
         </div>
     </div>
 
-    <!-- News Modal -->
     <div id="newsModal" class="modal">
         <div class="modal-content">
             <span class="close-modal" onclick="closeModal('newsModal')">&times;</span>
@@ -578,8 +538,6 @@
         </div>
     </div>
 
-
-    <!-- Notice Modal -->
     <div id="noticeModal" class="modal">
         <div class="modal-content">
             <span class="close-modal" onclick="closeModal('noticeModal')">&times;</span>
@@ -602,7 +560,6 @@
         </div>
     </div>
 
-    <!-- Add Dynamic Button Modal -->
     <div id="addButtonModal" class="modal">
         <div class="modal-content">
             <span class="close-modal" onclick="closeModal('addButtonModal')">&times;</span>
@@ -640,7 +597,6 @@
         </div>
     </div>
 
-    <!-- Delete Button Modal -->
     <div id="deleteButtonModal" class="modal">
         <div class="modal-content">
             <span class="close-modal" onclick="closeModal('deleteButtonModal')">&times;</span>
@@ -652,7 +608,6 @@
                 <div class="form-group">
                     <label>Select Button to Delete</label>
                     <select name="btn_id" id="delete-btn-select" class="form-control" style="width:100%; padding:8px;">
-                        <!-- Options populated by JS -->
                     </select>
                 </div>
 
@@ -671,7 +626,6 @@
         <p>Data Source: NOAA Aviation Weather Center | Displaying previous 3 complete days (UTC)</p>
     </footer>
 
-    <!-- D3 Map Data Injection -->
     <script id="station-coords-data" type="application/json">
         {{ station_coords | tojson }}
     </script>
@@ -679,13 +633,11 @@
         {{ stations | tojson }}
     </script>
     <script>
-        // Inject Flask data for D3 map adapter
         window.IMD_STATION_COORDS = JSON.parse(document.getElementById('station-coords-data').textContent);
         window.IMD_STATION_NAMES = JSON.parse(document.getElementById('station-names-data').textContent);
         window.IMD_GEOJSON_URL = "/api/map/india_state";
     </script>
 
-    <!-- D3 Map Scripts -->
     <script src="{{ url_for('static', filename='js/d3_map_core.js') }}?v=8"></script>
     <script src="{{ url_for('static', filename='js/d3_map_adapter.js') }}?v=8"></script>
     <script src="{{ url_for('static', filename='js/clock.js') }}?v=8"></script>
@@ -694,14 +646,13 @@
         {{ dynamic_buttons | tojson }}
     </script>
     <script>
-        // --- NOTICE MANAGEMENT ---
         async function deleteNotice(id) {
             if (!confirm("Are you sure you want to delete this notice?")) return;
 
             try {
                 const response = await fetch(`/api/notices/delete/${id}`, { method: 'POST' });
                 if (response.ok) {
-                    location.reload(); // Simple reload to refresh list
+                    location.reload();
                 } else {
                     alert("Failed to delete notice.");
                 }
@@ -770,19 +721,13 @@
             }
         }
 
-        // --- NOTAM LIFECYCLE MANAGEMENT ---
-
-        // Tab Switcher
         function switchNotamTab(tabName) {
-            // Buttons
             document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
             event.target.classList.add('active');
 
-            // Content
             document.querySelectorAll('.notam-tab-content').forEach(div => div.style.display = 'none');
             document.getElementById('notam-view-' + tabName).style.display = 'block';
 
-            // Refresh List
             fetchNotamLists();
         }
 
@@ -852,7 +797,6 @@
 
         function formatDateForInput(dateStr) {
             if (!dateStr) return '';
-            // Assuming dateStr is "YYYY-MM-DD HH:MM:SS" from DB
             return dateStr.replace(' ', 'T').substring(0, 16);
         }
 
@@ -882,7 +826,6 @@
             `).join('');
         }
 
-        // Actions
         async function uploadNotamDraft(input) {
             if (!input.files[0]) return;
             const formData = new FormData();
@@ -905,7 +848,6 @@
             const text = document.getElementById(`edit-draft-${id}`).value;
             const validTill = document.getElementById(`edit-date-${id}`).value;
 
-            // Convert 'T' back to space for DB
             const formattedDate = validTill.replace('T', ' ') + ':00';
 
             await fetch(`/api/notam/edit/${id}`, {
@@ -921,7 +863,7 @@
             if (!confirm('Publish this NOTAM? It will go live immediately.')) return;
             await fetch(`/api/notam/publish/${id}`, { method: 'POST' });
             fetchNotamLists();
-            fetchActiveNotam(); // Update public view
+            fetchActiveNotam(); 
         }
 
         async function archiveNotam(id) {
@@ -937,12 +879,10 @@
             fetchNotamLists();
         }
 
-        // Initial Load for admin
         if ("{{ session.get('role') }}" === 'admin') {
             fetchNotamLists();
         }
 
-        // Public View Fetcher
         async function fetchActiveNotam() {
             try {
                 const response = await fetch('/api/notam/active');
@@ -965,11 +905,9 @@
             }
         }
 
-        // Fetch NOTAM every 60 seconds
         fetchActiveNotam();
         setInterval(fetchActiveNotam, 60000);
 
-        // Auto-Refresh VABB Data
         async function fetchLatestVABB() {
             try {
                 const response = await fetch('/api/latest/VABB');
@@ -980,9 +918,6 @@
                 const result = await response.json();
                 const data = result.data;
 
-                // Format UTC timestamp from DB (Handle various formats)
-                // FORCE UTC: 'YYYY-MM-DD HH:MM:SS' logic often defaults to local.
-                // We ensure it is 'YYYY-MM-DDTHH:MM:SSZ'
                 let rawTime = data.timestamp_utc;
                 if (rawTime) {
                     rawTime = rawTime.replace(' ', 'T');
@@ -993,7 +928,6 @@
 
                 let ts = new Date(rawTime);
 
-                // Format: HH:MM UTC
                 const hours = String(ts.getUTCHours()).padStart(2, '0');
                 const minutes = String(ts.getUTCMinutes()).padStart(2, '0');
                 const day = String(ts.getUTCDate()).padStart(2, '0');
@@ -1015,7 +949,6 @@
                     </div>
                 `;
 
-                // Update DOM
                 const metarDisplay = document.querySelector('.metar-display');
                 if (metarDisplay) {
                     metarDisplay.innerHTML = metarHTML;
@@ -1029,11 +962,9 @@
             }
         }
 
-        // Fetch immediately and then every 60 seconds
         fetchLatestVABB();
         setInterval(fetchLatestVABB, 60000);
 
-        // Modal Functions
         function openModal(modalId) {
             document.getElementById(modalId).classList.add('show');
         }
@@ -1042,15 +973,12 @@
             document.getElementById(modalId).classList.remove('show');
         }
 
-        // Close on outside click
         window.onclick = function (event) {
             if (event.target.classList.contains('modal')) {
                 event.target.classList.remove('show');
             }
         }
 
-
-        // SIGMET Polling
         async function updateSigmetStatus() {
             try {
                 const response = await fetch('/api/sigmet/status');
@@ -1061,15 +989,12 @@
 
                 if (!container) return;
 
-                // Keep the button, update the text above it
-                // We reconstruct the inner HTML to ensure clean state
-
                 let statusHtml = '';
                 let statusColor = '#666';
                 let cardBorder = '';
 
                 if (data.is_active) {
-                    statusColor = '#dc3545'; // Red for warning
+                    statusColor = '#dc3545';
                     statusHtml = `
                         <div style="background: #ffe6e6; border: 1px solid #dc3545; padding: 10px; border-radius: 4px; width: 100%; margin-bottom: 5px;">
                             <strong style="color: #dc3545; font-size: 1rem;">⚠️ ACTIVE SIGMET</strong>
@@ -1080,7 +1005,7 @@
                         </div>
                     `;
                 } else {
-                    statusColor = '#28a745'; // Green for good
+                    statusColor = '#28a745';
                     statusHtml = `
                         <div style="color: #28a745; font-weight: 500; font-size: 1rem; margin-bottom: 5px;">
                              No Active SIGMET
@@ -1089,7 +1014,6 @@
                     `;
                 }
 
-                // Helper function to format UTC time from string
                 const lastChecked = data.last_checked ? new Date(data.last_checked + 'Z').toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', timeZone: 'UTC' }) : '--:--';
 
                 container.innerHTML = `
@@ -1106,11 +1030,9 @@
             }
         }
 
-        // Initial call and periodic update
         updateSigmetStatus();
-        setInterval(updateSigmetStatus, 60000); // Check every minute (backend updates every 5 min)
+        setInterval(updateSigmetStatus, 60000);
 
-        // Mobile Menu Toggle
         function toggleMobileMenu() {
             const menu = document.getElementById('mobileMenu');
             if (menu.classList.contains('show')) {
@@ -1120,15 +1042,11 @@
             }
         }
 
-        // --- DYNAMIC BUTTON LOGIC ---
-
         function openAddButtonModal(section) {
             document.getElementById('btn-section').value = section;
             document.getElementById('addButtonModal').style.display = 'flex';
 
-            // Reset fields
             document.getElementById('add-button-form').reset();
-            // Default to link
             toggleBtnInputs();
         }
 
@@ -1175,15 +1093,12 @@
             }
         }
 
-        // Injected Dynamic Buttons Data
         const dynamicButtons = JSON.parse(document.getElementById('dynamic-buttons-data').textContent);
-
-        // ... existing functions ...
 
         function openDeleteButtonModal(section) {
             document.getElementById('del-btn-section').value = section;
             const select = document.getElementById('delete-btn-select');
-            select.innerHTML = ''; // Clear existing
+            select.innerHTML = ''; 
 
             const buttons = dynamicButtons[section] || [];
 
@@ -1193,7 +1108,6 @@
                 opt.disabled = true;
                 opt.selected = true;
                 select.add(opt);
-                // Disable submit?
             } else {
                 buttons.forEach(btn => {
                     const opt = document.createElement('option');
@@ -1233,14 +1147,12 @@
         }
     </script>
     <script>
-        // --- LOGIN AJAX HANDLING ---
         document.addEventListener('DOMContentLoaded', () => {
             const loginForm = document.querySelector('#loginModal form');
             const errorMsg = document.getElementById('login-error-msg');
 
             if (loginForm) {
                 const inputs = loginForm.querySelectorAll('input');
-                // Clear error on input
                 inputs.forEach(input => {
                     input.addEventListener('input', () => {
                         errorMsg.style.display = 'none';
@@ -1317,7 +1229,6 @@
                 const result = await response.json();
 
                 if (result.status === 'success') {
-                    // Success! Reload to show new item
                     window.location.reload();
                 } else {
                     alert('Upload Failed: ' + (result.message || 'Unknown error'));

@@ -95,7 +95,6 @@ def init_db():
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             );
 
-
             CREATE TABLE IF NOT EXISTS dynamic_buttons (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 section TEXT NOT NULL, -- resources, operational, external, olbs
@@ -127,9 +126,7 @@ def init_db():
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             );
         ''')
-        
-        # --- Migrations ---
-        # Execute these separately as Python code, not inside the SQL script
+
         try:
             conn.execute("ALTER TABLE news_events ADD COLUMN ocr_text TEXT")
         except: pass
@@ -142,8 +139,7 @@ def init_db():
         try:
             conn.execute("ALTER TABLE notices ADD COLUMN status TEXT DEFAULT 'PUBLISHED'")
         except: pass
-        
-        # Decoupling Migrations
+
         try: conn.execute("ALTER TABLE news_events ADD COLUMN upload_id INTEGER")
         except: pass
         try: conn.execute("ALTER TABLE notices ADD COLUMN upload_id INTEGER")
@@ -153,8 +149,7 @@ def init_db():
         try: conn.execute("ALTER TABLE dynamic_buttons ADD COLUMN upload_id INTEGER")
         except: pass
         conn.commit()
-        
-        # Seed Data
+
         seed_employees_if_empty()
         
         logger.info("Database initialized successfully.")
@@ -231,10 +226,6 @@ def get_latest_observation(station_icao):
     finally:
         conn.close()
 
-# --- News & Events Helpers ---
-
-# --- News & Events Helpers ---
-
 def create_news_draft(filename, ocr_text, summary, user, upload_id=None):
     conn = get_db_connection()
     try:
@@ -301,8 +292,6 @@ def delete_news_item(item_id):
         return False
     finally:
         conn.close()
-
-# --- Notice Board Helpers ---
 
 def create_notice_draft(filename, ocr_text, summary, user, upload_id=None):
     conn = get_db_connection()
@@ -371,8 +360,6 @@ def delete_notice_item(item_id):
     finally:
         conn.close()
 
-# --- SIGMET Helpers ---
-
 def save_sigmet_status(status_data):
     """
     Save or update the current SIGMET status.
@@ -411,7 +398,6 @@ def get_sigmet_status():
         return None
     finally:
         conn.close()
-
 
 def create_notam_draft(filename, ocr_text, final_text, valid_till, user, upload_id=None):
     conn = get_db_connection()
@@ -490,9 +476,7 @@ def get_public_active_notam():
     """Get the latest VALID, ACTIVE NOTAM."""
     conn = get_db_connection()
     try:
-        # Use simple string format "YYYY-MM-DD HH:MM:SS" which matches SQLite default if we inserted as string
-        # or just ensure we compare roughly correctly. 
-        # Ideally, we should store ISO8601 everywhere.
+
         now = datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S')
         cursor = conn.execute('''
             SELECT final_notam_text, valid_till_utc 
@@ -526,10 +510,6 @@ def auto_expire_notams():
     finally:
         conn.close()
 
-
-
-# --- Aerodrome Warning Helpers ---
-
 def create_aerodrome_warning(station_icao, message, valid_from, valid_to, created_by='System'):
     conn = get_db_connection()
     try:
@@ -550,14 +530,11 @@ def get_active_aerodrome_warnings():
     Get all active aerodrome warnings from the EXTERNAL Aerodrome App database.
     Path: /home/mwomumbai/app/sql_app.db
     """
-    # The external database path
-    EXTERNAL_DB_PATH = '/home/mwomumbai/app/sql_app.db'
     
-    # Fallback to local if running in dev without access to external path?
-    # But user is on server, so we use the absolute path.
+    EXTERNAL_DB_PATH = '/home/mwomumbai/app/sql_app.db'
+
     if not os.path.exists(EXTERNAL_DB_PATH):
-        # Fallback for local development or if file missing
-        # Try relative for local debug if needed, but primary is the server path.
+
         if os.path.exists('met_data.db'):
             conn = sqlite3.connect('met_data.db')
             conn.row_factory = sqlite3.Row
@@ -570,12 +547,7 @@ def get_active_aerodrome_warnings():
         import json
         conn = sqlite3.connect(EXTERNAL_DB_PATH)
         conn.row_factory = sqlite3.Row
-        
-        # In the Aerodrome App (sql_app.db):
-        # - Table name is 'alerts'
-        # - Column 'status' is 'FINALIZED' for active broadcasts
-        # - Column 'content' is a JSON string containing airport and validity
-        
+
         cursor = conn.execute('''
             SELECT * FROM alerts 
             WHERE status IN ('FINALIZED', 'active')
@@ -594,21 +566,20 @@ def get_active_aerodrome_warnings():
                 
             try:
                 content = json.loads(content_raw)
-                # Schema: {'airport': 'VAKP', 'valid_until_iso': '2026-02-06T22:41:00', 'generated_text': '...'}
+                
                 station_icao = content.get('airport')
                 valid_to_iso = content.get('valid_until_iso')
                 message = content.get('generated_text')
                 
                 if not station_icao or not valid_to_iso:
                     continue
-                
-                # Parse validity
+
                 try:
-                    # ISO format: 2026-02-06T22:41:00 or similar
+                    
                     valid_to_dt = datetime.fromisoformat(valid_to_iso.replace('Z', ''))
                     
                     if valid_to_dt > now:
-                        # Map to what frontend expects
+                        
                         active_warnings.append({
                             'station_icao': station_icao,
                             'valid_to': valid_to_dt.strftime('%Y-%m-%d %H:%M:%S'),
@@ -634,10 +605,6 @@ def get_active_warning_for_station(station_icao):
     """Filter from the consolidated active warnings list."""
     all_warnings = get_active_aerodrome_warnings()
     return [w for w in all_warnings if w['station_icao'].strip().upper() == station_icao.strip().upper()]
-
-
-# --- Dynamic Button Management ---
-
 
 def add_dynamic_button(section, label, btn_type, url=None, file_path=None, upload_id=None):
     """
@@ -694,7 +661,7 @@ def get_dynamic_buttons_by_section():
             if sec in result:
                 result[sec].append(btn)
             else:
-                # Handle unexpected sections gracefully or ignore
+                
                 pass
         return result
     except Exception as e:
@@ -702,8 +669,6 @@ def get_dynamic_buttons_by_section():
         return result
     finally:
         conn.close()
-
-# --- Admin Upload Tracking ---
 
 def track_admin_upload(filename, file_type, file_path, uploaded_by):
     """
@@ -713,7 +678,7 @@ def track_admin_upload(filename, file_type, file_path, uploaded_by):
     conn = get_db_connection()
     try:
         from datetime import timedelta
-        expiration = datetime.utcnow() + timedelta(days=180) # 6 months approx
+        expiration = datetime.utcnow() + timedelta(days=180) 
         
         cursor = conn.execute('''
             INSERT INTO admin_uploads 
@@ -767,13 +732,7 @@ def delete_admin_upload(upload_id):
         
         file_path = row['file_path']
         conn.execute('DELETE FROM admin_uploads WHERE id = ?', (upload_id,))
-        # Or soft delete: conn.execute('UPDATE admin_uploads SET is_deleted=1 WHERE id=?', (upload_id,))
-        # User asked: "Permanently removes the file from disk and marks it deleted in the database"
-        # Actually simplest is to DELETE row and return path. 
-        # But Prompt says "marks it deleted". Let's stick to DELETE for cleanliness unless audit is needed.
-        # "marks it deleted" implies soft delete. 
-        # But "Permanently removes ... and marks it deleted"
-        
+
         conn.commit()
         return file_path
     except Exception as e:
@@ -792,13 +751,13 @@ def cleanup_expired_uploads():
     paths_to_delete = []
     try:
         now = datetime.utcnow()
-        # Find expired
+        
         cursor = conn.execute('SELECT id, file_path FROM admin_uploads WHERE expiration_date < ?', (now,))
         rows = cursor.fetchall()
         
         for row in rows:
             paths_to_delete.append(row['file_path'])
-            # We can delete immediately or mark. Prompt says "Automatically delete from disk and database"
+            
             conn.execute('DELETE FROM admin_uploads WHERE id = ?', (row['id'],))
             
         conn.commit()
@@ -808,8 +767,6 @@ def cleanup_expired_uploads():
         return []
     finally:
         conn.close()
-
-# --- Employee Management ---
 
 def get_employees():
     """Get all employees ordered by id (or custom order if added later)."""
@@ -872,7 +829,6 @@ def seed_employees_if_empty():
     if existing:
         return
 
-    # Seed data from the Excel file integration
     initial_employees = [
         {"name": "Mrs. Shubhangi A. Bhute", "designation": "Head MWO Mumbai (Scientist F)", "section": "HEAD", "telephone": "022-2681-9541"},
         {"name": "Dr. Dipak Kumar Sahu", "designation": "Scientist C", "section": "AMSS in-charge", "telephone": "022-2681-9430"},

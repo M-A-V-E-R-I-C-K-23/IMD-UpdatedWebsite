@@ -18,13 +18,12 @@
 
 <body class="mwo-theme">
     <div id="dashboard-container">
-        <!-- Sidebar Navigation -->
+        
         <nav id="sidebar">
             <div class="sidebar-header">
                 <div class="mwo-logo">MWO-AERO</div>
                 <div class="system-time" id="clock">--:--:-- UTC</div>
 
-                <!-- Auth Status -->
                 <div class="auth-status-line" style="font-size: 0.75rem; margin-top: 5px; color: var(--mwo-muted);">
                     {% if session.get('user') %}
                     <span>{{ session.user }}</span> | <a href="{{ url_for('map.logout') }}"
@@ -37,7 +36,7 @@
             </div>
 
             <div class="nav-section">
-                <!-- NOTAM Module (Ported from Sidebar) -->
+                
                 {% if session.get('role') == 'admin' %}
                 <div class="sidebar-btn-group" style="margin-bottom: 1rem;">
                     <button class="map-btn" onclick="openModal('newsModal')" style="width:100%; margin-bottom: 5px;">+
@@ -48,17 +47,16 @@
 
                 <div class="section-title">REGIONAL MONITORING</div>
                 <ul id="airport-nav-list">
-                    <!-- Populated by JS -->
+                    
                 </ul>
             </div>
 
             <div class="active-alerts">
                 <div class="section-title">ACTIVE ALERTS</div>
-                <!-- Populated by JS -->
+                
                 <div id="active-alerts-container"></div>
             </div>
 
-            <!-- Operational Tools Section -->
             <div class="nav-section" style="border-top: 1px solid var(--mwo-border);">
                 <div class="section-title">OPERATIONAL TOOLS</div>
                 <a href="https://121.240.10.8:8000" target="_blank" class="sidebar-link"
@@ -70,7 +68,6 @@
             </div>
         </nav>
 
-        <!-- Main Content Area -->
         <main id="monitor-area"
             style="flex: 1; display: flex; flex-direction: column; overflow: hidden; position: relative;">
             <header id="main-header">
@@ -86,7 +83,7 @@
             </header>
 
             <div id="map-control-center">
-                <!-- Map Wrapper -->
+                
                 <div id="map-viewport">
                     <svg id="main-map"></svg>
 
@@ -94,7 +91,7 @@
                         <button class="map-btn" id="zoom-in">+</button>
                         <button class="map-btn" id="zoom-out">-</button>
                         <button class="map-btn" id="zoom-reset">RESET VIEW</button>
-                        <!-- <button class="map-btn" id="toggle-grid">GRID</button> -->
+                        
                     </div>
 
                     <div id="scale-bar-container">
@@ -102,14 +99,12 @@
                         <div id="scale-bar-text">500 km</div>
                     </div>
 
-                    <!-- Inset Map (Modernized) -->
                     <div id="mwo-inset-container">
                         <div class="inset-tab">MH-GOA DETAIL</div>
                         <svg id="inset-map"></svg>
                     </div>
                 </div>
 
-                <!-- Info Panel (Right Side) -->
                 <aside id="info-panel">
                     <div id="selected-airport-card" class="mwo-panel">
                         <div class="panel-header">SELECTED AERODROME</div>
@@ -168,8 +163,6 @@
         </main>
     </div>
 
-    <!-- Modals (Borrowed from map.html) -->
-    <!-- Login Modal -->
     <div id="loginModal" class="modal">
         <div class="modal-content"
             style="background: var(--mwo-bg); border: 1px solid var(--mwo-accent); color: var(--mwo-text);">
@@ -189,7 +182,6 @@
         </div>
     </div>
 
-    <!-- News Modal -->
     <div id="newsModal" class="modal">
         <div class="modal-content"
             style="background: var(--mwo-bg); border: 1px solid var(--mwo-accent); color: var(--mwo-text);">
@@ -214,7 +206,6 @@
         </div>
     </div>
 
-    <!-- Notice Modal -->
     <div id="noticeModal" class="modal">
         <div class="modal-content"
             style="background: var(--mwo-bg); border: 1px solid var(--mwo-accent); color: var(--mwo-text);">
@@ -239,7 +230,6 @@
         </div>
     </div>
 
-    <!-- Setup Script -->
     <script>
         // Error Handler
         window.onerror = function (msg, url, line, col, error) {

@@ -1,16 +1,14 @@
+
 document.addEventListener('DOMContentLoaded', function () {
-    // Get station from global window variable (defined in template)
     const selectedStation = window.SELECTED_STATION;
     const refreshBtn = document.getElementById('refreshBtn');
 
-    // Colors for the 3 days (Newest to Oldest)
     const colors = [
-        'rgb(0, 123, 255)',    // Blue (Yesterday)
-        'rgb(40, 167, 69)',    // Green (2 Days ago)
-        'rgb(255, 193, 7)'     // Yellow/Orange (3 Days ago)
+        'rgb(0, 123, 255)',
+        'rgb(40, 167, 69)',
+        'rgb(255, 193, 7)'
     ];
 
-    // Lighter colors for incomplete days
     const incompleteColors = [
         'rgba(0, 123, 255, 0.4)',
         'rgba(40, 167, 69, 0.4)',
@@ -28,7 +26,6 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     function updateDataStatus(data) {
-        // Update header with station info
         const statusContainer = document.getElementById('dataStatus');
         if (statusContainer) {
             let statusHtml = `<strong>${data.station}</strong> (${data.station_code}) | `;
@@ -44,16 +41,13 @@ document.addEventListener('DOMContentLoaded', function () {
             statusContainer.innerHTML = statusHtml;
         }
 
-        // --- Update Header Date Label ---
         const dateBadge = document.getElementById('todayDateBadge');
         if (dateBadge && data.today_live && data.today_live.date) {
-            // Format: YYYY-MM-DD -> DD Mon YYYY
             const dateObj = new Date(data.today_live.date);
             const options = { day: '2-digit', month: 'short', year: 'numeric', timeZone: 'UTC' };
             const dateStr = dateObj.toLocaleDateString('en-GB', options);
             dateBadge.textContent = `Today: ${dateStr} (UTC)`;
         } else if (dateBadge) {
-            // Fallback to current UTC date if today_live is missing
             const now = new Date();
             const options = { day: '2-digit', month: 'short', year: 'numeric', timeZone: 'UTC' };
             dateBadge.textContent = `Today: ${now.toLocaleDateString('en-GB', options)} (UTC)`;
@@ -78,26 +72,23 @@ document.addEventListener('DOMContentLoaded', function () {
                 addTrace(dayData, index, false);
             });
 
-            // Add Today (Live) Trace
             if (data.today_live) {
-                addTrace(data.today_live, 3, true); // Index 3 for distinct color or handling
+                addTrace(data.today_live, 3, true);
             }
 
             function addTrace(dayData, index, isLive) {
-                // Map times to a common reference date for overlay (full 24-hour alignment)
                 const xValues = dayData.data.map(obs => `2000-01-01 ${obs.time}`);
                 const yValues = dayData.data.map(obs => obs[config.key]);
 
-                // Styling for Live vs Historical
                 let lineColor, lineDash, lineWidth;
 
                 if (isLive) {
-                    lineColor = 'rgb(220, 53, 69)'; // Red for Live
-                    lineDash = 'solid'; // Solid for Today
-                    lineWidth = 3; // Thicker
+                    lineColor = 'rgb(220, 53, 69)';
+                    lineDash = 'solid';
+                    lineWidth = 3;
                 } else {
                     lineColor = dayData.is_complete ? colors[index] : incompleteColors[index];
-                    lineDash = 'dot'; // Dotted/Dashed for History
+                    lineDash = 'dot';
                     lineWidth = 2;
                 }
 
@@ -129,12 +120,11 @@ document.addEventListener('DOMContentLoaded', function () {
                     title: 'Time (UTC)',
                     type: 'date',
                     tickformat: '%H:%M',
-                    // ENFORCE full 24-hour range
                     range: ['2000-01-01 00:00:00', '2000-01-01 23:59:59'],
-                    dtick: 3 * 60 * 60 * 1000, // 3 hours in milliseconds
+                    dtick: 3 * 60 * 60 * 1000,
                     showgrid: true,
                     gridcolor: '#e0e0e0',
-                    fixedrange: false  // Allow zoom on x-axis
+                    fixedrange: false
                 },
                 yaxis: {
                     title: config.yaxis,
@@ -153,7 +143,6 @@ document.addEventListener('DOMContentLoaded', function () {
                 hovermode: 'x unified',
                 plot_bgcolor: 'white',
                 paper_bgcolor: 'white',
-                // Add shapes to highlight midnight boundaries
                 shapes: [
                     {
                         type: 'line',
@@ -188,8 +177,7 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
-    // Live Update Logic
-    const LIVE_UPDATE_INTERVAL = 10 * 60 * 1000; // 10 minutes
+    const LIVE_UPDATE_INTERVAL = 10 * 60 * 1000;
 
     function fetchLiveData() {
         console.log("Fetching live data...");
@@ -197,9 +185,6 @@ document.addEventListener('DOMContentLoaded', function () {
             .then(response => response.json())
             .then(data => {
                 if (data.today_live) {
-                    // Update the global data structure or chart directly.
-                    // For simplicity, we'll re-fetch the whole data if day changed or just merge.
-                    // But to be robust and simple, let's merge into the existing chart.
                     updateLiveTrace(data.today_live);
                 }
             })
@@ -207,15 +192,9 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     function updateLiveTrace(liveData) {
-        // Check for rollover
-        const todayDate = liveData.date; // YYYY-MM-DD
+        const todayDate = liveData.date;
         const currentUtcDate = new Date().toISOString().split('T')[0];
 
-        // If the live data is stale (from yesterday) or we crossed midnight locally?
-        // Actually, the backend sends "Today"'s data based on UTC.
-        // If backend says today is X, we trust it.
-
-        // We need to update existing charts.
         const chartIds = ['tempChart', 'dewChart', 'windSpeedChart', 'windDirChart', 'visChart', 'qnhChart'];
         const chartConfigs = [
             { id: 'tempChart', key: 'temperature' },
@@ -231,30 +210,21 @@ document.addEventListener('DOMContentLoaded', function () {
             const chartDiv = document.getElementById(config.id);
             if (!chartDiv || !chartDiv.data) return;
 
-            // Find the "Today (Live)" trace
             let traceIndex = chartDiv.data.findIndex(trace => trace.name === liveData.label);
 
-            // Map new data
             const xValues = liveData.data.map(obs => `2000-01-01 ${obs.time}`);
             const yValues = liveData.data.map(obs => obs[config.key]);
 
             if (traceIndex !== -1) {
-                // Update existing trace
                 Plotly.restyle(config.id, {
                     x: [xValues],
                     y: [yValues]
                 }, [traceIndex]);
             } else {
-                // Trace not found (maybe first load was empty), need to add it?
-                // For simplicity, strict requirement says "Add new trace... in all graphs".
-                // We should have added it initially even if empty.
-                // But if we didn't, we can extend.
-                // Let's rely on the fact that fetchData() creates it initially.
             }
         });
     }
 
-    // --- Fetch Latest METAR (Live) ---
     function fetchLatestMetar() {
         const container = document.getElementById('latestDataContent');
         if (!container) return;
@@ -284,7 +254,6 @@ document.addEventListener('DOMContentLoaded', function () {
             });
     }
 
-    // --- Fetch SIGMET Status ---
     function fetchSigmetStatus() {
         const container = document.getElementById('sigmetContent');
         if (!container) return;
@@ -315,9 +284,7 @@ document.addEventListener('DOMContentLoaded', function () {
     }
     fetchData();
 
-    // Auto-refresh every 10 minutes for live data
     setInterval(fetchLiveData, LIVE_UPDATE_INTERVAL);
 
-    // Event Listeners
     refreshBtn.addEventListener('click', fetchData);
 });

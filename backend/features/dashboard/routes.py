@@ -10,18 +10,11 @@ dashboard_bp = Blueprint('dashboard', __name__)
 
 @dashboard_bp.route('/api/rvr/status')
 def get_rvr_status():
-    """Get live RVR status for Mumbai."""
-    # Optional: Check for ?debug=true to include debug info in response
-    # show_debug = request.args.get('debug') == 'true'
-    
     result = fetch_live_rvr()
-    
-    # We always return the result (which mimics the structure contract)
     return jsonify(result)
 
 @dashboard_bp.route('/dashboard/<station_code>')
 def dashboard(station_code):
-    """Airport-specific dashboard view."""
     if station_code not in STATIONS:
         return "Station not found", 404
     
@@ -34,18 +27,14 @@ def dashboard(station_code):
 def get_data():
     station = request.args.get('station', DEFAULT_STATION)
     
-    # Calculate the 3 previous days (STRICTLY excluding today)
-    # Current UTC date
     today = datetime.utcnow().date()
     
     candidate_days = []
-    # Start from yesterday and go back
-    for i in range(1, 10):  # Check up to 10 days back to find 3 complete days
+    for i in range(1, 10):
         candidate_days.append(today - timedelta(days=i))
     
-    # --- Fetch Today's Data (Live) ---
     today_start = datetime.combine(today, time(0, 0, 0))
-    today_end = datetime.utcnow() # Up to now
+    today_end = datetime.utcnow()
     
     today_obs = get_observations(station, today_start, today_end)
     formatted_today = format_observations(today_obs)
@@ -71,17 +60,13 @@ def get_data():
         if complete_days_found >= 3:
             break
             
-        # Define STRICT range 00:00:00 to 23:59:59 UTC
         start_ts = datetime.combine(d, time(0, 0, 0))
         end_ts = datetime.combine(d, time(23, 59, 59))
         
-        # Get data from DB
         raw_obs = get_observations(station, start_ts, end_ts)
         
-        # Validate completeness
         is_complete, coverage_info = validate_day_completeness(raw_obs)
         
-        # Format observations for frontend
         formatted_obs = format_observations(raw_obs)
         
         day_data = {
@@ -92,22 +77,18 @@ def get_data():
             "data": formatted_obs
         }
         
-        # Only include complete days OR mark incomplete days clearly
         if is_complete:
             complete_days_found += 1
             response_data["days"].append(day_data)
         else:
-            # Include incomplete days but mark them
-            # This allows the frontend to decide whether to show them
             day_data["label"] = f"{d.strftime('%d %b %Y')} (Incomplete)"
             response_data["days"].append(day_data)
-            complete_days_found += 1  # Still count towards 3 days to show
+            complete_days_found += 1
         
     return jsonify(response_data)
 
 @dashboard_bp.route('/api/status')
 def get_status():
-    """Get system status and data availability."""
     today = datetime.utcnow().date()
     status_info = {
         "current_utc_time": datetime.utcnow().isoformat(),
@@ -141,17 +122,13 @@ def get_status():
 
 @dashboard_bp.route('/api/latest/<station_code>')
 def get_latest(station_code):
-    """Get the most recent observation for a station. Auto-refreshes if stale."""
     obs = get_latest_observation(station_code)
     
-    # Check for staleness (older than 20 mins or missing)
     is_stale = False
     if not obs:
         is_stale = True
     else:
         try:
-            # Timestamp usually stored as string in SQLite: 'YYYY-MM-DD HH:MM:SS'
-            # Or depends on how it was saved. Assuming standard format.
             obs_dt = obs['timestamp_utc']
             if isinstance(obs_dt, str):
                 obs_dt = datetime.fromisoformat(obs_dt)
@@ -165,9 +142,7 @@ def get_latest(station_code):
     if is_stale:
         logger.info(f"Data for {station_code} is stale/missing. Fetching live...")
         try:
-            # Fetch last 2 hours to be sure we get the latest METAR
             fetch_station_data(station_code, hours=2)
-            # Fetch from DB again
             obs = get_latest_observation(station_code)
         except Exception as e:
             logger.error(f"Live fetch failed: {e}")
@@ -175,10 +150,8 @@ def get_latest(station_code):
     if not obs:
         return jsonify({"status": "no_data", "station": station_code, "message": "No data available even after fetch"}), 404
         
-    # Ensure timestamp is ISO format with Z to indicate UTC
     ts_val = obs['timestamp_utc']
     if isinstance(ts_val, str):
-        # If it's a string like "2023-10-27 10:00:00", append Z if missing
         if not ts_val.endswith('Z') and '+' not in ts_val:
              ts_val = ts_val.replace(' ', 'T') + 'Z'
     elif isinstance(ts_val, datetime):
@@ -203,10 +176,6 @@ def get_latest(station_code):
 
 @dashboard_bp.route('/api/live_data')
 def get_live_data():
-    """
-    Get ONLY the live data for the current day.
-    Used for frequent polling.
-    """
     station = request.args.get('station', DEFAULT_STATION)
     today = datetime.utcnow().date()
     

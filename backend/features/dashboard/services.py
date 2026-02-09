@@ -8,9 +8,7 @@ def fetch_live_rvr(station_code="VABB"):
     Fetch live RVR data.
     Method: STRICT SCREENSHOT ONLY (Selenium + OCR).
     """
-    # No caching allowed per requirements.
-    # No requests allowed.
-    
+
     return fetch_rvr_screenshot()
 
 def validate_day_completeness(observations):
@@ -20,7 +18,7 @@ def validate_day_completeness(observations):
     Returns:
         tuple: (is_complete: bool, coverage_info: dict)
     """
-    # ... logic unchanged ...
+    
     if not observations:
         return False, {
             "status": "no_data",
@@ -28,8 +26,7 @@ def validate_day_completeness(observations):
             "observation_count": 0,
             "hours_covered": []
         }
-    
-    # Extract hours from observations
+
     hours_with_data = set()
     for obs in observations:
         try:
@@ -40,14 +37,12 @@ def validate_day_completeness(observations):
     
     observation_count = len(observations)
     hours_covered = sorted(list(hours_with_data))
-    
-    # Calculate hour spread (difference between max and min hour)
+
     if hours_covered:
         hour_spread = max(hours_covered) - min(hours_covered)
     else:
         hour_spread = 0
-    
-    # Determine completeness
+
     is_complete = (
         observation_count >= MIN_OBSERVATIONS_PER_DAY and
         hour_spread >= MIN_HOUR_SPREAD
@@ -75,16 +70,14 @@ def format_observations(observations):
         try:
             obs_dt = datetime.fromisoformat(obs['timestamp_utc'])
             time_str = obs_dt.strftime("%H:%M")
-            
-            # Calculate Relative Humidity (RH)
-            # RH = 100 * (EXP((17.625 * TD) / (243.04 + TD)) / EXP((17.625 * T) / (243.04 + T)))
+
             t = obs.get('temperature')
             td = obs.get('dew_point')
             rh = None
             
             if t is not None and td is not None:
                 try:
-                    # Ensure float
+                    
                     t = float(t)
                     td = float(td)
                     
@@ -92,8 +85,7 @@ def format_observations(observations):
                     denominator = math.exp((17.625 * t) / (243.04 + t))
                     
                     rh_val = 100 * (numerator / denominator)
-                    
-                    # Round to 2 decimals and clamp 0-100
+
                     rh = round(max(0, min(100, rh_val)), 2)
                 except Exception as calc_err:
                     logger.warning(f"RH split calc error: {calc_err}")

@@ -1,3 +1,4 @@
+
 :root {
     --map-ocean: #020617;
     --map-state-muted: #1e293b;
@@ -9,7 +10,6 @@
     --mwo-bg: #0f172a;
 }
 
-/* Map Containers */
 #map-viewport {
     flex: 1;
     position: relative;
@@ -67,7 +67,6 @@
     display: flex;
     flex-direction: column;
     pointer-events: none;
-    /* Make inset passive */
 }
 
 .inset-tab {
@@ -79,7 +78,6 @@
     text-align: center;
 }
 
-/* SVG Elements */
 .state-color {
     transition: all 0.3s ease;
     stroke: rgba(255, 255, 255, 0.2);
@@ -122,10 +120,8 @@
     fill: none;
 }
 
-/* Pins */
 .airport-pin {
     cursor: pointer;
-    /* Keep cursor pointer for hover feel even if no click action */
     transition: transform 0.3s ease;
     filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.5));
 }

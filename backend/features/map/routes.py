@@ -28,31 +28,24 @@ def allowed_file(filename):
 
 @map_bp.route('/api/map/india_state')
 def get_india_state():
-    """Serve pre-compressed GeoJSON for performance"""
     accept_encoding = request.headers.get('Accept-Encoding', '')
     
-    # Path handling
-    # We need absolute path or relative to static folder
-    # Assuming app root is backend/
     static_dir = os.path.join(current_app.root_path, '../frontend/static/geojson')
     
     if 'gzip' in accept_encoding and os.path.exists(os.path.join(static_dir, 'india_state.geojson.gz')):
         response = send_from_directory(static_dir, 'india_state.geojson.gz')
         response.headers['Content-Encoding'] = 'gzip'
         response.headers['Content-Type'] = 'application/geo+json'
-        # content-length is set automatically by send_from_directory for the .gz file size
         return response
     
     return send_from_directory(static_dir, 'india_state.geojson')
 
 @map_bp.route('/')
 def index():
-    """Landing page with Maharashtra map."""
     required_states, state_boundaries = get_required_state_boundaries()
     
     is_expanded = len(required_states) > 1 or "Maharashtra" not in required_states
     
-    # Conditional Data Fetching
     admin_view = session.get('role') == 'admin'
     news_items = get_news_items(admin_view=admin_view)
     notice_items = get_notice_items(admin_view=admin_view)
@@ -72,14 +65,12 @@ def index():
 @map_bp.route('/head')
 def head_profile():
     employees = get_employees()
-    # Find employee with section 'HEAD' (case-insensitive)
     head = next((e for e in employees if e['section'] and e['section'].upper() == 'HEAD'), None)
     return render_template('head.html', head=head)
 
 @map_bp.route('/employees')
 def employee_list():
     all_employees = get_employees()
-    # Filter out HEAD from the general list
     employees = [e for e in all_employees if not (e['section'] and e['section'].upper() == 'HEAD')]
     return render_template('employees.html', employees=employees)
 
@@ -120,8 +111,6 @@ def delete_employee_route(emp_id):
         return jsonify({'success': True})
     return jsonify({'success': False, 'error': 'Delete Failed'})
 
-
-# --- Auth Routes ---
 @map_bp.route('/login', methods=['POST'])
 def login():
     username = request.form.get('username')
@@ -132,23 +121,16 @@ def login():
     
     if username == 'mwo_admin':
         if password == 'Admin@123':
-            # 1. Prevent Session Fixation
             session.clear()
             
-            # 2. Enable Persistent Session
             session.permanent = True
             
-            # 3. Store Minimal User Info
             session['user'] = 'mwo_admin'
             session['role'] = 'admin'
             success = True
         else:
             error = "Invalid username or password"
     elif username:
-        # Dev mode allows any other username without password
-        # For non-admin dev users, we might not want permanent sessions, 
-        # or we can treat them same for consistency in dev.
-        # Assuming dev users are transient, but let's keep it simple.
         session.clear()
         session['user'] = username
         session['role'] = 'user'
@@ -156,18 +138,15 @@ def login():
     else:
         error = "Invalid username or password"
 
-    # Handle AJAX Requests
     if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
         if success:
             return jsonify({'success': True, 'redirect': url_for('map.index')})
         else:
             return jsonify({'success': False, 'error': error})
 
-    # Legacy Fallback (Standard Form Submit)
     if success:
         return redirect(url_for('map.index'))
     else:
-        # If standard submit fails, just redirect home for now (or could flash error)
         return redirect(url_for('map.index'))
 
 @map_bp.route('/logout')
@@ -175,7 +154,6 @@ def logout():
     session.clear()
     return redirect(url_for('map.index'))
 
-# --- Sigmet Route ---
 @map_bp.route('/api/sigmet/status')
 def get_sigmet_status_api():
     status = get_sigmet_status()
@@ -188,8 +166,6 @@ def get_sigmet_status_api():
         "valid_from": status['validity_text'],
         "last_checked": status['updated_at']
     })
-
-# --- NEWS ROUTES ---
 
 @map_bp.route('/api/news/upload', methods=['POST'])
 def upload_news():
@@ -207,7 +183,6 @@ def upload_news():
         filename = secure_filename(file.filename)
         ext = filename.rsplit('.', 1)[1].lower() if '.' in filename else ''
         
-        # Backend File Type Detection
         file_type = 'document'
         if ext in ['png', 'jpg', 'jpeg', 'gif', 'webp']:
             file_type = 'image'
@@ -245,7 +220,6 @@ def upload_news_draft():
     file.save(path)
     upload_id = track_admin_upload(filename, 'image', f"{subfolder}/{filename}", session.get('user'))
     
-    # Process
     try:
         ocr_text = extract_text_from_image(path)
         summary = generate_summary(ocr_text)
@@ -279,8 +253,6 @@ def delete_news(item_id):
     delete_news_item(item_id)
     return redirect(url_for('map.index'))
 
-# --- NOTICES ROUTES ---
-
 @map_bp.route('/api/notices/post', methods=['POST'])
 def post_notice():
     if session.get('role') != 'admin':
@@ -298,7 +270,6 @@ def post_notice():
             filename = secure_filename(file.filename)
             ext = filename.rsplit('.', 1)[1].lower() if '.' in filename else ''
             
-            # Backend File Type Detection
             file_type = 'document'
             if ext in ['png', 'jpg', 'jpeg', 'gif', 'webp']:
                 file_type = 'image'
@@ -374,20 +345,13 @@ def serve_file(type, filename):
         os.makedirs(folder, exist_ok=True)
     return send_from_directory(folder, filename)
 
-# --- AERODROME WARNING ROUTES ---
-
 @map_bp.route('/api/warnings/active')
 def get_active_warnings_api():
-    """
-    Get all active aerodrome warnings.
-    """
     try:
         warnings = get_active_aerodrome_warnings()
         return jsonify({'success': True, 'data': warnings})
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 500
-
-# --- Dynamic Button Management API ---
 
 @map_bp.route('/api/buttons/add', methods=['POST'])
 def add_button_api():
@@ -397,7 +361,7 @@ def add_button_api():
     try:
         section = request.form.get('section')
         label = request.form.get('label')
-        btn_type = request.form.get('type') # 'link' or 'file'
+        btn_type = request.form.get('type')
         url = request.form.get('url')
         file = request.files.get('file')
         
@@ -408,7 +372,6 @@ def add_button_api():
         upload_id = None
         if btn_type == 'file' and file:
             filename = secure_filename(file.filename)
-            # Use 'misc' folder for generic button files
             save_dir = os.path.join(UPLOAD_FOLDER, 'misc')
             os.makedirs(save_dir, exist_ok=True)
             timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
@@ -416,7 +379,6 @@ def add_button_api():
             file.save(os.path.join(save_dir, unique_filename))
             file_path = unique_filename
             
-            # Track it
             upload_id = track_admin_upload(unique_filename, 'misc', f"misc/{unique_filename}", session.get('user'))
         
         add_dynamic_button(section, label, btn_type, url, file_path, upload_id)
@@ -430,18 +392,15 @@ def delete_button_api(btn_id):
         return jsonify({'success': False, 'error': 'Unauthorized'}), 403
     
     try:
-        # Decoupled deletion: Only delete the button entry, NOT the file.
         delete_dynamic_button(btn_id)
         return jsonify({'success': True})
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)})
 
-# --- ADMIN UPLOAD MANAGEMENT ---
-
 @map_bp.route('/admin/uploads')
 def admin_uploads_view():
     if session.get('role') != 'admin':
-        return redirect(url_for('map.index')) # or 403
+        return redirect(url_for('map.index'))
         
     uploads = get_admin_uploads(session.get('user'))
     return render_template('admin_uploads.html', uploads=uploads)

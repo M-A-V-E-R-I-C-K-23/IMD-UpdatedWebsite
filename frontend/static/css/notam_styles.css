@@ -1,4 +1,4 @@
-/* NOTAM Tabs */
+
 .notam-admin-panel {
     border: 1px solid #ddd;
     border-radius: 4px;
@@ -87,7 +87,6 @@
 
 .btn-publish {
     background: #00b894;
-    /* Green */
 }
 
 .btn-publish:hover {
@@ -96,7 +95,6 @@
 
 .btn-danger {
     background: #d63031;
-    /* Red */
 }
 
 .btn-danger:hover {

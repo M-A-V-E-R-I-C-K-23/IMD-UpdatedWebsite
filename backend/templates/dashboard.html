@@ -5,7 +5,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>IMD Meteorological Dashboard</title>
-    <!-- Plotly.js via CDN -->
     <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}?v=2">
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
@@ -33,12 +32,10 @@
         Loading data...
     </div>
 
-    <!-- Aerodrome Warning Banner (Initially Hidden) -->
     <div id="warningBanner"
         style="display: none; background: #d9534f; color: white; padding: 10px; overflow: hidden; white-space: nowrap; position: relative;">
         <div id="warningText"
             style="display: inline-block; padding-left: 100%; animation: marquee 15s linear infinite; font-weight: bold;">
-            <!-- Warning text goes here -->
         </div>
     </div>
     <style>
@@ -53,46 +50,37 @@
         }
     </style>
 
-    <!-- Info Panels (RVR, METAR, SIGMET) - REMOVED per request -->
-
     <main class="dashboard-grid">
-        <!-- Temperature -->
         <div class="chart-card">
             <h3>Temperature (°C)</h3>
             <div id="tempChart" class="plotly-chart"></div>
         </div>
 
-        <!-- Dew Point -->
         <div class="chart-card">
             <h3>Dew Point (°C)</h3>
             <div id="dewChart" class="plotly-chart"></div>
         </div>
 
-        <!-- Relative Humidity -->
         <div class="chart-card">
             <h3>Relative Humidity (%)</h3>
             <div id="rhChart" class="plotly-chart"></div>
         </div>
 
-        <!-- Wind Speed -->
         <div class="chart-card">
             <h3>Wind Speed (kt)</h3>
             <div id="windSpeedChart" class="plotly-chart"></div>
         </div>
 
-        <!-- Wind Direction -->
         <div class="chart-card">
             <h3>Wind Direction (°)</h3>
             <div id="windDirChart" class="plotly-chart"></div>
         </div>
 
-        <!-- Visibility -->
         <div class="chart-card">
             <h3>Visibility (m)</h3>
             <div id="visChart" class="plotly-chart"></div>
         </div>
 
-        <!-- QNH -->
         <div class="chart-card">
             <h3>QNH Pressure (hPa)</h3>
             <div id="qnhChart" class="plotly-chart"></div>
@@ -106,7 +94,6 @@
     <script>
         window.SELECTED_STATION = "{{ selected_station }}";
 
-        // Poll for warnings
         async function checkWarnings() {
             try {
                 const res = await fetch(`/api/warnings/${window.SELECTED_STATION}`);
@@ -117,7 +104,6 @@
 
                     if (data.active) {
                         banner.style.display = 'block';
-                        // Add some spacing to the message for scrolling loop visual
                         text.textContent = `⚠️ AERODROME WARNING FOR ${window.SELECTED_STATION}: ${data.message}    |    Valid until ${data.valid_to.substring(11, 16)} UTC`;
                     } else {
                         banner.style.display = 'none';
@@ -128,7 +114,6 @@
             }
         }
 
-        // Check immediately and every minute
         checkWarnings();
         setInterval(checkWarnings, 60000);
     </script>

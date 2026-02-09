@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>IMD Meteorological Dashboard</title>
-    <!-- Plotly.js via CDN -->
+    
     <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
@@ -41,37 +41,32 @@
     </div>
 
     <main class="dashboard-grid">
-        <!-- Temperature -->
+        
         <div class="chart-card">
             <h3>Temperature (°C)</h3>
             <div id="tempChart" class="plotly-chart"></div>
         </div>
 
-        <!-- Dew Point -->
         <div class="chart-card">
             <h3>Dew Point (°C)</h3>
             <div id="dewChart" class="plotly-chart"></div>
         </div>
 
-        <!-- Wind Speed -->
         <div class="chart-card">
             <h3>Wind Speed (kt)</h3>
             <div id="windSpeedChart" class="plotly-chart"></div>
         </div>
 
-        <!-- Wind Direction -->
         <div class="chart-card">
             <h3>Wind Direction (°)</h3>
             <div id="windDirChart" class="plotly-chart"></div>
         </div>
 
-        <!-- Visibility -->
         <div class="chart-card">
             <h3>Visibility (m)</h3>
             <div id="visChart" class="plotly-chart"></div>
         </div>
 
-        <!-- QNH -->
         <div class="chart-card">
             <h3>QNH Pressure (hPa)</h3>
             <div id="qnhChart" class="plotly-chart"></div>
