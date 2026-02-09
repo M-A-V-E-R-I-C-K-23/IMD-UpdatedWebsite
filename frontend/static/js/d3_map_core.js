@@ -208,7 +208,7 @@ window.D3MapCore = (function () {
 
             context.translate(-12, -22);
 
-            let pinColor = "#FFD60A";
+            let pinColor = "#1976D2"; // Google Blue
             let isDimmed = false;
             let hasAlert = false;
 
@@ -217,7 +217,7 @@ window.D3MapCore = (function () {
 
             if (activeAlerts[code]) {
                 hasAlert = true;
-                pinColor = "#ef4444";
+                pinColor = "#EA4335"; // Google Red
 
                 if (activeAlerts[code].isUrgent && !blinkState) {
                     isDimmed = true;
@@ -234,7 +234,7 @@ window.D3MapCore = (function () {
 
             if (selectedAirportCode === airport.code) {
                 context.shadowBlur = 15;
-                context.shadowColor = "#FFD60A";
+                context.shadowColor = "#1976D2";
             } else {
                 context.shadowBlur = 0;
             }
@@ -253,9 +253,9 @@ window.D3MapCore = (function () {
             context.fill();
 
             context.shadowBlur = 0;
-            context.lineWidth = 2.5;
-            context.strokeStyle = "#07090F";
-            context.fillStyle = "#F8F9FA";
+            context.lineWidth = 3;
+            context.strokeStyle = "#FFFFFF"; // White halo
+            context.fillStyle = "#202124";   // Google Text Dark
 
             context.strokeText(airport.code, 12, -5);
             context.fillText(airport.code, 12, -5);

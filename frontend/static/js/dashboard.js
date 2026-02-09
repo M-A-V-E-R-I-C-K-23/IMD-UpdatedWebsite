@@ -3,6 +3,113 @@ document.addEventListener('DOMContentLoaded', function () {
     const selectedStation = window.SELECTED_STATION;
     const refreshBtn = document.getElementById('refreshBtn');
 
+    // Runway configuration (Heading 1 / Heading 2)
+    const RUNWAY_INFO = {
+        "VABB": { rwy1: 27, rwy2: 9, label: "27/09" },
+        "VAAH": { rwy1: 23, rwy2: 5, label: "23/05" },
+        "VANP": { rwy1: 32, rwy2: 14, label: "32/14" },
+        "VABO": { rwy1: 22, rwy2: 4, label: "22/04" },
+        "VAID": { rwy1: 25, rwy2: 7, label: "25/07" },
+        "VABP": { rwy1: 30, rwy2: 12, label: "30/12" },
+        "VAGO": { rwy1: 26, rwy2: 8, label: "26/08" },
+        "VAOZ": { rwy1: 26, rwy2: 8, label: "26/08" }, // Approx
+        "VAAU": { rwy1: 27, rwy2: 9, label: "27/09" }, // Approx
+        "VAKP": { rwy1: 28, rwy2: 10, label: "28/10" },
+        "VASN": { rwy1: 28, rwy2: 10, label: "28/10" }, // Approx
+        "VASU": { rwy1: 4, rwy2: 22, label: "04/22" },
+        "VAJJ": { rwy1: 26, rwy2: 8, label: "26/08" }
+    };
+
+    function drawRunwayDial(windDir, windSpeed) {
+        const config = RUNWAY_INFO[selectedStation] || { rwy1: 27, rwy2: 9, label: "27/09" };
+        const runwayHeading = config.rwy1 * 10;
+
+        // Calculate components
+        const radd = (windDir - runwayHeading) * Math.PI / 180;
+        const headwind = (windSpeed * Math.cos(radd)).toFixed(1);
+        const crosswind = (windSpeed * Math.sin(radd)).toFixed(1);
+
+        const data = [
+            // Wind Vector Arrow
+            {
+                type: 'scatterpolar',
+                r: [0, windSpeed],
+                theta: [0, windDir],
+                mode: 'lines+markers',
+                line: { color: 'red', width: 4 },
+                marker: { symbol: 'arrow-bar-up', size: 15, color: 'red' },
+                name: 'Wind'
+            },
+            // Runway Strip
+            {
+                type: 'scatterpolar',
+                r: [30, 30], // Length of runway visual
+                theta: [runwayHeading, runwayHeading + 180],
+                mode: 'lines',
+                line: { color: 'black', width: 20 },
+                name: 'Runway',
+                hoverinfo: 'none'
+            }
+        ];
+
+        const layout = {
+            polar: {
+                radialaxis: { visible: true, range: [0, Math.max(40, windSpeed + 10)] },
+                angularaxis: {
+                    direction: "clockwise",
+                    rotation: 90,
+                    tickmode: "array",
+                    tickvals: [0, 90, 180, 270],
+                    ticktext: ["N", "E", "S", "W"]
+                }
+            },
+            showlegend: false,
+            title: {
+                text: `Runway ${config.label}<br><span style="font-size:0.8em; color:blue">Head/Tail: ${headwind}kt | Cross: ${Math.abs(crosswind)}kt</span>`,
+                font: { size: 14 }
+            },
+            margin: { t: 40, b: 30, l: 40, r: 40 },
+            autosize: true
+        };
+
+        Plotly.newPlot('runwayDial', data, layout, { displayModeBar: false, responsive: true });
+    }
+
+    function drawSpeedDial(windSpeed) {
+        const data = [
+            {
+                type: "indicator",
+                mode: "gauge+number",
+                value: windSpeed,
+                title: { text: "Speed (kt)", font: { size: 14 } },
+                gauge: {
+                    axis: { range: [null, 60], tickwidth: 1, tickcolor: "darkblue" },
+                    bar: { color: "#0056b3" },
+                    bgcolor: "white",
+                    borderwidth: 2,
+                    bordercolor: "gray",
+                    steps: [
+                        { range: [0, 15], color: "#e3f2fd" },
+                        { range: [15, 30], color: "#bbdefb" },
+                        { range: [30, 60], color: "#90caf9" }
+                    ],
+                    threshold: {
+                        line: { color: "red", width: 4 },
+                        thickness: 0.75,
+                        value: 50
+                    }
+                }
+            }
+        ];
+
+        const layout = {
+            margin: { t: 30, b: 30, l: 30, r: 30 },
+            autosize: true
+        };
+
+        Plotly.newPlot('speedDial', data, layout, { displayModeBar: false, responsive: true });
+    }
+
     const colors = [
         'rgb(0, 123, 255)',
         'rgb(40, 167, 69)',
@@ -21,12 +128,17 @@ document.addEventListener('DOMContentLoaded', function () {
             .then(data => {
                 updateCharts(data);
                 updateDataStatus(data);
+                if (data.today_live && data.today_live.data && data.today_live.data.length > 0) {
+                    const lastObs = data.today_live.data[data.today_live.data.length - 1];
+                    drawRunwayDial(lastObs.wind_direction, lastObs.wind_speed);
+                    drawSpeedDial(lastObs.wind_speed);
+                }
             })
             .catch(error => console.error('Error fetching data:', error));
     }
 
     function updateDataStatus(data) {
-        const statusContainer = document.getElementById('dataStatus');
+        const statusContainer = document.getElementById('dataStatusContent');
         if (statusContainer) {
             let statusHtml = `<strong>${data.station}</strong> (${data.station_code}) | `;
 
@@ -220,9 +332,14 @@ document.addEventListener('DOMContentLoaded', function () {
                     x: [xValues],
                     y: [yValues]
                 }, [traceIndex]);
-            } else {
             }
         });
+
+        if (liveData.data && liveData.data.length > 0) {
+            const lastObs = liveData.data[liveData.data.length - 1];
+            drawRunwayDial(lastObs.wind_direction, lastObs.wind_speed);
+            drawSpeedDial(lastObs.wind_speed);
+        }
     }
 
     function fetchLatestMetar() {

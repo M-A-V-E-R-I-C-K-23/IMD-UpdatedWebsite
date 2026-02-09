@@ -31,6 +31,26 @@
                         <a href="#" class="dropdown-item">Conference Proceedings</a>
                     </div>
                 </li>
+
+                <li class="nav-item dropdown">
+                    <a href="#" class="nav-link">SOP ▾</a>
+                    <div class="dropdown-content simple-list">
+                        <a href="{{ url_for('documents.list_documents', module_type='sop', section='aviation') }}"
+                            class="dropdown-item">Aviation SOP</a>
+                        <a href="{{ url_for('documents.list_documents', module_type='sop', section='admin') }}"
+                            class="dropdown-item">Admin SOP</a>
+                    </div>
+                </li>
+
+                <li class="nav-item dropdown">
+                    <a href="#" class="nav-link">Circulars ▾</a>
+                    <div class="dropdown-content simple-list">
+                        <a href="{{ url_for('documents.list_documents', module_type='circulars', section='aviation') }}"
+                            class="dropdown-item">Aviation Circular</a>
+                        <a href="{{ url_for('documents.list_documents', module_type='circulars', section='admin') }}"
+                            class="dropdown-item">Admin Circular</a>
+                    </div>
+                </li>
             </ul>
         </div>
 

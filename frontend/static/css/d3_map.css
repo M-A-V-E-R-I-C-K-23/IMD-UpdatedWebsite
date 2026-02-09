@@ -1,6 +1,6 @@
 
 .d3-map-scoped {
-    background: #030712;
+    background: #AAD3DF; /* Google Maps Water Blue */
     position: relative;
     width: 100%;
     height: 100%;
@@ -23,15 +23,15 @@
 }
 
 .d3-map-scoped .map-btn {
-    background: rgba(3, 7, 18, 0.9);
-    border: 1px solid rgba(34, 211, 238, 0.3);
-    color: #E5E7EB;
+    background: #FFFFFF;
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    color: #5F6368;
     padding: 0.5rem 0.8rem;
     font-size: 0.75rem;
     font-weight: 700;
     border-radius: 4px;
     cursor: pointer;
-    backdrop-filter: blur(4px);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
     transition: all 0.2s ease;
 }
 
@@ -44,10 +44,10 @@
 }
 
 .d3-map-scoped .map-btn:hover {
-    background: rgba(34, 211, 238, 0.2);
-    color: #22D3EE;
-    border-color: #22D3EE;
-    box-shadow: 0 0 15px rgba(34, 211, 238, 0.2);
+    background: #F8F9FA;
+    color: #202124;
+    border-color: #DADCE0;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
 }
 
 .d3-map-scoped .map-btn:active {
@@ -58,49 +58,53 @@
     position: absolute;
     bottom: 20px;
     right: 20px;
-    background: rgba(3, 7, 18, 0.85);
+    background: rgba(255, 255, 255, 0.9);
     padding: 0.5rem 1rem;
     border-radius: 6px;
-    border: 1px solid rgba(34, 211, 238, 0.2);
+    border: 1px solid rgba(0, 0, 0, 0.1);
     display: flex;
     flex-direction: column;
     align-items: center;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.1);
 }
 
 .d3-map-scoped #scale-bar-line {
     height: 3px;
-    background: #22D3EE;
-    border-left: 2px solid #22D3EE;
-    border-right: 2px solid #22D3EE;
+    background: #333;
+    border-left: 2px solid #333;
+    border-right: 2px solid #333;
     margin-bottom: 4px;
 }
 
 .d3-map-scoped #scale-bar-text {
     font-size: 0.7rem;
-    color: #E5E7EB;
-    font-family: 'JetBrains Mono', monospace;
+    color: #202124;
+    font-family: 'Roboto', sans-serif;
+    font-weight: 500;
 }
 
 .d3-map-scoped .state-color {
-    fill: #0B3D2E;
-    stroke: rgba(255, 255, 255, 0.05);
-    stroke-width: 0.5px;
+    fill: #F2F2F2; /* Google Maps Land Grey */
+    stroke: #BFBFBF; /* Border Grey */
+    stroke-width: 0.8px;
     transition: fill 0.3s ease;
 }
 
 .d3-map-scoped .state-color.muted {
-    fill: #082F24;
+    fill: #F2F2F2;
 }
 
 .d3-map-scoped .state-color.highlighted {
-    fill: #134E3B;
+    fill: #E6E6E6;
 }
 
 .d3-map-scoped .state-map-label {
-    fill: #E5E7EB;
-    opacity: 0.6;
-    font-size: 8px;
+    fill: #5F6368;
+    opacity: 0.8;
+    font-size: 9px;
     pointer-events: none;
+    font-weight: 500;
+    text-shadow: 0 0 2px #fff;
 }
 
 .d3-map-scoped .state-map-label.muted {
@@ -109,38 +113,38 @@
 }
 
 .d3-map-scoped .state-map-label.highlighted {
-    fill: #FFFFFF;
+    fill: #202124;
     opacity: 1;
 }
 
 .d3-map-scoped .graticule {
-    stroke: rgba(255, 255, 255, 0.02);
+    stroke: rgba(0, 0, 0, 0.05);
     stroke-width: 0.5px;
     fill: none;
 }
 
 .d3-map-scoped .fir-boundary {
     fill: none;
-    stroke: #22D3EE;
+    stroke: #202124;
     stroke-width: 1.5;
     stroke-dasharray: 5, 5;
-    opacity: 0.8;
+    opacity: 0.6;
     transition: all 0.3s ease;
 }
 
 .d3-map-scoped .fir-mumbai {
     fill: none;
-    stroke: #22D3EE;
+    stroke: #1976D2;
     stroke-width: 2;
-    opacity: 1;
-    filter: drop-shadow(0 0 2px rgba(34, 211, 238, 0.3));
+    opacity: 0.8;
+    filter: drop-shadow(0 0 1px rgba(255, 255, 255, 0.5));
 }
 
 .d3-map-scoped .fir-label {
-    fill: #22D3EE;
+    fill: #1976D2;
     font-size: 10px;
     font-weight: 700;
-    text-shadow: 0 0 3px rgba(0, 0, 0, 0.8);
-    opacity: 0.9;
-    letter-spacing: 1px;
+    text-shadow: 0 0 3px rgba(255, 255, 255, 1);
+    opacity: 1;
+    letter-spacing: 0.5px;
 }

@@ -2,7 +2,7 @@ from flask import Blueprint, render_template, request, jsonify
 from datetime import datetime, timedelta, time
 from core.config import STATIONS, DEFAULT_STATION
 from core.extensions import logger
-from database import get_observations, get_latest_observation
+from database import get_observations, get_latest_observation, get_active_warning_for_station
 from features.ogimet.services import fetch_station_data
 from .services import validate_day_completeness, format_observations, fetch_live_rvr
 
@@ -12,6 +12,24 @@ dashboard_bp = Blueprint('dashboard', __name__)
 def get_rvr_status():
     result = fetch_live_rvr()
     return jsonify(result)
+
+@dashboard_bp.route('/api/warnings/<station_code>')
+def get_station_warnings(station_code):
+    try:
+        warnings = get_active_warning_for_station(station_code)
+        if warnings:
+            # Return the most recent active warning
+            latest_warning = warnings[0] # List is sorted by created_at DESC in get_active_aerodrome_warnings
+            return jsonify({
+                "active": True,
+                "message": latest_warning['message'],
+                "valid_to": latest_warning['valid_to'],
+                "station": station_code
+            })
+        return jsonify({"active": False})
+    except Exception as e:
+        logger.error(f"Error fetching warnings for {station_code}: {e}")
+        return jsonify({"active": False, "error": str(e)}), 500
 
 @dashboard_bp.route('/dashboard/<station_code>')
 def dashboard(station_code):

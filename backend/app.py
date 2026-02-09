@@ -10,6 +10,7 @@ from features.map import map_bp
 from features.dashboard import dashboard_bp, configure_rvr_scheduler
 from features.notam import notam_bp, configure_notam_scheduler
 from features.ogimet import ogimet_bp, configure_scheduler
+from features.documents.routes import documents_bp
 
 def create_app():
     app = Flask(__name__, 
@@ -39,6 +40,7 @@ def create_app():
     app.register_blueprint(dashboard_bp)
     app.register_blueprint(notam_bp)
     app.register_blueprint(ogimet_bp)
+    app.register_blueprint(documents_bp)
     
     with app.app_context():
         init_db()
