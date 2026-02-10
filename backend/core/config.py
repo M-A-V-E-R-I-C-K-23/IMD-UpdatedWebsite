@@ -11,52 +11,49 @@ ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif', 'webp', 'pdf', 'doc', 'docx',
 
 STATIONS = {
     "VABB": "Mumbai",
-    "VAAH": "Ahmedabad", 
-    "VANP": "Nagpur",
-    "VABO": "Vadodara",
-    "VAID": "Indore",
-    "VABP": "Bhopal",
-    "VAGO": "Goa",
-    "VAOZ": "Ozar (Nashik)",
-    "VAAU": "Aurangabad", 
+    "VANM": "Navi Mumbai",
+    "VASD": "Shirdi",
+    "VAJJ": "Juhu",
+    "VAJL": "Jalgaon",
+    "VAAU": "Aurangabad",
+    "VOND": "Nanded",
     "VAKP": "Kolhapur",
-    "VASN": "Sindhudurg",
-    "VASU": "Surat",
-    "VAJJ": "Juhu"
+    "VOSR": "Sindhudurg",
+    "VASL": "Solapur",
+    "VOLT": "Latur",
+    "VOGA": "Mopa (Goa)"
 }
 
 DEFAULT_STATION = "VABB"
 
 STATION_COORDS = {
     "VABB": [19.0886, 72.868],
-    "VAAH": [23.076, 72.636],
-    "VANP": [21.092, 79.047],
-    "VABO": [22.336, 73.226],
-    "VAID": [22.722, 75.801],
-    "VABP": [23.287, 77.338],
-    "VAGO": [15.380, 73.831],
-    "VAOZ": [20.119, 73.913],
+    "VANM": [18.9846, 73.0653],
+    "VASD": [19.6892, 74.3737],
+    "VAJJ": [19.097, 72.833],
+    "VAJL": [20.9619, 75.6267],
     "VAAU": [19.863, 75.398],
+    "VOND": [19.1833, 77.3167],
     "VAKP": [16.663, 74.288],
-    "VASN": [16.002, 73.525],
-    "VASU": [21.114, 72.742],
-    "VAJJ": [19.097, 72.833]
+    "VOSR": [16.0026, 73.5298],
+    "VASL": [17.628, 75.9348],
+    "VOLT": [18.4117, 76.4642],
+    "VOGA": [15.7442, 73.8606]
 }
 
 STATION_STATES = {
     "VABB": "Maharashtra",
-    "VANP": "Maharashtra",
-    "VAOZ": "Maharashtra",
-    "VAAU": "Maharashtra",
-    "VAKP": "Maharashtra",
-    "VASN": "Maharashtra",
+    "VANM": "Maharashtra",
+    "VASD": "Maharashtra",
     "VAJJ": "Maharashtra",
-    "VAAH": "Gujarat",
-    "VABO": "Gujarat",
-    "VASU": "Gujarat",
-    "VAID": "Madhya Pradesh",
-    "VABP": "Madhya Pradesh",
-    "VAGO": "Goa"
+    "VAJL": "Maharashtra",
+    "VAAU": "Maharashtra",
+    "VOND": "Maharashtra",
+    "VAKP": "Maharashtra",
+    "VOSR": "Maharashtra",
+    "VASL": "Maharashtra",
+    "VOLT": "Maharashtra",
+    "VOGA": "Goa"
 }
 
 STATE_BOUNDARIES = {

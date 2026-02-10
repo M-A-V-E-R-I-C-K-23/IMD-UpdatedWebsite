@@ -368,7 +368,7 @@
             <div class="card-content rvr-content-compact" id="rvr-container"
                 style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 15px;">
                 <p style="margin: 0; font-size: 0.95rem; color: #555;">Live RVR is hosted on CAMD portal</p>
-                <a href="https://camd.imd.gov.in/dgca-cp/" target="_blank" class="rvr-btn" style="
+                <a href="https://rvrcamd.imd.gov.in:5000/live-rvr" target="_blank" class="rvr-btn" style="
                         padding: 8px 16px; 
                         background-color: #0056b3; 
                         color: white; 
@@ -863,7 +863,7 @@
             if (!confirm('Publish this NOTAM? It will go live immediately.')) return;
             await fetch(`/api/notam/publish/${id}`, { method: 'POST' });
             fetchNotamLists();
-            fetchActiveNotam(); 
+            fetchActiveNotam();
         }
 
         async function archiveNotam(id) {
@@ -1098,7 +1098,7 @@
         function openDeleteButtonModal(section) {
             document.getElementById('del-btn-section').value = section;
             const select = document.getElementById('delete-btn-select');
-            select.innerHTML = ''; 
+            select.innerHTML = '';
 
             const buttons = dynamicButtons[section] || [];
 
