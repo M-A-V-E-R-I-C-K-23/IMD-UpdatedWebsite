@@ -29,7 +29,7 @@
     <header class="map-header">
         <div class="header-content">
             <div class="logo-section">
-                
+
                 <div class="header-left">
                     <div class="logo-container">
                         <img src="{{ url_for('static', filename='images/imd_logo.png') }}" alt="IMD Logo"
@@ -53,10 +53,10 @@
             </div>
 
             <div class="header-right">
-                
+
                 <div class="admin-section">
                     {% if session.get('user') %}
-                    
+
                     <a href="#" class="admin-link"
                         onclick="document.getElementById('noticeModal').classList.add('show')">Post Notice</a>
                     {% endif %}
@@ -85,11 +85,11 @@
     </div>
 
     <div class="dashboard-container">
-        
+
         <aside class="sidebar left-sidebar">
             <div class="sidebar-section">
                 <h3 class="sidebar-title">OPERATIONAL ACTIONS</h3>
-                <a href="https://121.240.10.8:8000" target="_blank" rel="noopener noreferrer"
+                <a href="http://121.240.10.8:8000" target="_blank" rel="noopener noreferrer"
                     class="action-btn warning-btn"
                     style="text-decoration:none; text-align:center; display:block; padding-top:10px;">Aerodrome ↗</a>
 
@@ -98,7 +98,7 @@
 
                     {% if session.get('role') == 'admin' %}
                     <div class="notam-admin-panel">
-                        
+
                         <div class="notam-tabs">
                             <button class="tab-btn active" onclick="switchNotamTab('active')">Active</button>
                             <button class="tab-btn" onclick="switchNotamTab('drafts')">Drafts</button>
@@ -110,7 +110,7 @@
                         </div>
 
                         <div id="notam-view-drafts" class="notam-tab-content" style="display:none;">
-                            
+
                             <form id="notam-upload-form" style="margin-bottom:10px; text-align:center;">
                                 <input type="file" name="file" id="notam-file-in" accept=".pdf" style="display: none;"
                                     onchange="uploadNotamDraft(this)">
@@ -190,7 +190,7 @@
                     📌 Notice Board
                     {% if session.get('user') %}
                     <span class="sidebar-add-btn" onclick="openModal('noticeModal')">+</span>
-                    
+
                     <form id="notice-img-form" style="display:inline;">
                         <input type="file" id="notice-img-in" style="display:none;" accept="image/*"
                             onchange="uploadDraft('notices', this)">
@@ -204,7 +204,7 @@
                     {% if notice_items %}
                     {% for item in notice_items %}
                     {% if item.status == 'DRAFT' %}
-                    
+
                     <div class="sidebar-item" style="border-left: 3px solid orange; background: #fffbe6;">
                         <div class="sidebar-item-header">
                             <span class="item-user">📝 Draft</span>
@@ -226,7 +226,7 @@
                         </div>
                     </div>
                     {% else %}
-                    
+
                     <div class="sidebar-item">
                         <div class="sidebar-item-header">
                             <span class="item-user">👤 {{ item.uploaded_by }}</span>
@@ -270,7 +270,7 @@
                 <div class="map-overlay">
                     <div class="instruction-card">
                         <div class="instruction-icon">📍</div>
-                        
+
                         <p>Select airport for data</p>
                     </div>
                 </div>
@@ -279,7 +279,7 @@
         </div>
 
         <aside class="sidebar right-sidebar">
-            
+
             <div class="sidebar-section">
                 <h3 class="sidebar-title">OLBS</h3>
                 <div class="olbs-container">
@@ -328,7 +328,7 @@
             </div>
             <div class="card-content" id="sigmet-content"
                 style="display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; gap: 10px;">
-                
+
                 <p style="color: #666; font-size: 0.9rem;">Loading status...</p>
 
                 <a href="https://aviationweather.gov/gfa/#sigmet" target="_blank" class="view-data-btn"
