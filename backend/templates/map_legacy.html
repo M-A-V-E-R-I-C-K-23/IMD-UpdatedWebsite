@@ -31,13 +31,15 @@
             <div class="logo-section">
 
                 <div class="header-left">
-                    <div class="logo-container">
+                    <div class="logo-container" onclick="window.location.href='/'" style="cursor:pointer;">
                         <img src="{{ url_for('static', filename='images/imd_logo.png') }}" alt="IMD Logo"
                             class="imd-logo">
                     </div>
                     <div class="header-text">
-                        <h1>India Meteorological Department (IMD)</h1>
-                        <h2>Meteorological Watch Office - Mumbai</h2>
+                        <h1 onclick="window.location.href='/'" style="cursor:pointer; display:inline-block;">India
+                            Meteorological Department (IMD)</h1><br>
+                        <h2 onclick="window.location.href='/'" style="cursor:pointer; display:inline-block;">
+                            Meteorological Watch Office - Mumbai</h2>
 
                         <div class="auth-status-line" style="font-size: 0.9rem; margin-top: 5px; font-weight: 300;">
                             {% if session.get('user') %}

@@ -194,7 +194,65 @@ window.D3MapCore = (function () {
 
         const baseScale = 1.0;
         const pinScale = Math.min(2.0, Math.max(0.2, 1.6 / transform.k));
+        const overlapThreshold = 25 / transform.k; // Distance in data-space to consider overlapping
 
+        // --- 1. Detect Overlaps & Calculate Visual Positions ---
+        // Reset visual positions to actual positions first
+        airports.forEach(a => {
+            a.visX = a.x;
+            a.visY = a.y;
+            a.isCluster = false;
+        });
+
+        // Simple clustering
+        const clusters = [];
+        const processed = new Set();
+
+        for (let i = 0; i < airports.length; i++) {
+            if (processed.has(i) || !airports[i].x) continue;
+
+            const cluster = [airports[i]];
+            processed.add(i);
+
+            for (let j = i + 1; j < airports.length; j++) {
+                if (processed.has(j) || !airports[j].x) continue;
+
+                const dx = airports[i].x - airports[j].x;
+                const dy = airports[i].y - airports[j].y;
+                const dist = Math.sqrt(dx * dx + dy * dy);
+
+                if (dist < overlapThreshold) {
+                    cluster.push(airports[j]);
+                    processed.add(j);
+                }
+            }
+
+            if (cluster.length > 1) {
+                clusters.push(cluster);
+            }
+        }
+
+        // Apply radial separation to clusters
+        clusters.forEach(cluster => {
+            // Calculate centroid
+            let cx = 0, cy = 0;
+            cluster.forEach(a => { cx += a.x; cy += a.y; });
+            cx /= cluster.length;
+            cy /= cluster.length;
+
+            const radius = 15 / transform.k; // Separation radius in data units
+            const angleStep = (2 * Math.PI) / cluster.length;
+            const startAngle = -Math.PI / 2; // Start from top
+
+            cluster.forEach((a, index) => {
+                const angle = startAngle + (index * angleStep);
+                a.visX = cx + Math.cos(angle) * radius;
+                a.visY = cy + Math.sin(angle) * radius;
+                a.isCluster = true;
+            });
+        });
+
+        // --- 2. Render Markers at Visual Positions ---
         context.textAlign = "center";
         context.font = "600 7px sans-serif";
         context.lineJoin = "round";
@@ -203,7 +261,8 @@ window.D3MapCore = (function () {
             if (!airport.x || !airport.y) return;
 
             context.save();
-            context.translate(airport.x, airport.y);
+            // Use visual coordinates (visX, visY) instead of actual (x, y)
+            context.translate(airport.visX, airport.visY);
             context.scale(pinScale, pinScale);
 
             context.translate(-12, -22);
@@ -230,6 +289,25 @@ window.D3MapCore = (function () {
 
             if (isDimmed) {
                 context.globalAlpha = 0.4;
+            }
+
+            // Draw link line if displaced
+            if (airport.isCluster) {
+                context.save();
+                context.globalAlpha = 0.5;
+                context.strokeStyle = "#555";
+                context.lineWidth = 1 / pinScale;
+                context.beginPath();
+                // Draw line from pin base (12, 22 in local coords) back to actual location
+                // Need to transform actual location to local space:
+                // localX = (actualX - visX) / pinScale + 12
+                // localY = (actualY - visY) / pinScale + 22
+                const targetX = (airport.x - airport.visX) / pinScale + 12;
+                const targetY = (airport.y - airport.visY) / pinScale + 22;
+                context.moveTo(12, 22);
+                context.lineTo(targetX, targetY);
+                context.stroke();
+                context.restore();
             }
 
             if (selectedAirportCode === airport.code) {
@@ -283,8 +361,9 @@ window.D3MapCore = (function () {
         const threshold = 20 / currentTransform.k;
 
         airports.forEach(a => {
-            const dx = a.x - wx;
-            const dy = a.y - wy;
+            // Use visual coordinates for click detection
+            const dx = (a.visX || a.x) - wx;
+            const dy = (a.visY || a.y) - wy;
             const dist = Math.sqrt(dx * dx + dy * dy);
             if (dist < minDist) {
                 minDist = dist;

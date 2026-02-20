@@ -21,7 +21,7 @@
 
         <nav id="sidebar">
             <div class="sidebar-header">
-                <div class="mwo-logo">MWO-AERO</div>
+                <div class="mwo-logo" onclick="window.location.href='/'" style="cursor:pointer;">MWO-AERO</div>
                 <div class="system-time" id="clock">--:--:-- UTC</div>
 
                 <div class="auth-status-line" style="font-size: 0.75rem; margin-top: 5px; color: var(--mwo-muted);">
@@ -72,8 +72,10 @@
             style="flex: 1; display: flex; flex-direction: column; overflow: hidden; position: relative;">
             <header id="main-header">
                 <div class="header-left">
-                    <h1>MWO SYSTEM <span class="divider">/</span> REGIONAL MET MAP</h1>
-                    <p>MAHARASHTRA & GOA FLIGHT INFORMATION REGION (FIR)</p>
+                    <h1 onclick="window.location.href='/'" style="cursor:pointer; display:inline-block;">MWO SYSTEM
+                        <span class="divider">/</span> REGIONAL MET MAP</h1><br>
+                    <p onclick="window.location.href='/'" style="cursor:pointer; display:inline-block;">MAHARASHTRA &
+                        GOA FLIGHT INFORMATION REGION (FIR)</p>
                 </div>
                 <div class="header-right">
                     <div class="status-indicator online">

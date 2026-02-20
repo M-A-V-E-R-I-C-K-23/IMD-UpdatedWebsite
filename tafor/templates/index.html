@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TAF Generator</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <style>
+        :root {
+            --bg-color: #f4f6f9;
+            --card-bg: #ffffff;
+            --primary: #2c3e50;
+            --accent: #3498db;
+            --text: #333;
+            --error: #e74c3c;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 900px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .card {
+            background: var(--card-bg);
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            padding: 20px;
+        }
+
+        h1 {
+            margin-top: 0;
+            color: var(--primary);
+        }
+
+        h2 {
+            font-size: 1.2rem;
+            color: var(--accent);
+            margin-bottom: 10px;
+        }
+
+        label {
+            display: block;
+            margin-top: 10px;
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        input[type="text"],
+        select {
+            width: 100%;
+            padding: 10px;
+            margin-top: 5px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+
+        button {
+            background-color: var(--accent);
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-top: 20px;
+            font-size: 1rem;
+            width: 100%;
+        }
+
+        button:hover {
+            background-color: #2980b9;
+        }
+
+        .taf-box {
+            background: #2d3436;
+            color: #dfe6e9;
+            font-family: 'Consolas', 'Monaco', monospace;
+            padding: 15px;
+            border-radius: 4px;
+            white-space: pre-wrap;
+            margin-top: 5px;
+        }
+
+        .error-box {
+            background-color: #fdecea;
+            border-left: 4px solid var(--error);
+            padding: 15px;
+            color: var(--error);
+        }
+
+        .debug-section {
+            background: #eee;
+            padding: 10px;
+            border-radius: 4px;
+            font-size: 0.85rem;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .raw-data {
+            font-size: 0.8rem;
+            color: #7f8c8d;
+            margin-top: 10px;
+        }
+
+        .header-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .header-row h2 {
+            margin-bottom: 0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .action-group {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+
+        .action-link {
+            cursor: pointer;
+            color: #7f8c8d;
+            font-size: 0.9rem;
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+
+        .action-link:hover {
+            color: var(--accent);
+            text-decoration: underline;
+        }
+
+        .edited-badge {
+            font-size: 0.7rem;
+            background-color: #f1c40f;
+            color: #fff;
+            padding: 2px 6px;
+            border-radius: 4px;
+            display: none;
+            /* Hidden by default */
+            vertical-align: middle;
+        }
+
+        .taf-box[contenteditable="true"] {
+            border: 2px solid var(--accent);
+            outline: none;
+            background-color: #34495e;
+            /* Slightly lighter when editing */
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="container">
+        <div class="card">
+            <h1 onclick="window.location.href='/'" style="cursor:pointer; display:inline-block;">TAF Generator Tool</h1>
+
+            <form action="{{ url_for('generate') }}" method="POST">
+
+
+                <label for="station">Select Station</label>
+                <select id="station" name="station">
+                    <option value="VABB" {% if not last_station or last_station=='VABB' %}selected{% endif %}>MUMBAI
+                        (VABB)</option>
+                    <option value="VANM" {% if last_station=='VANM' %}selected{% endif %}>NAVI MUMBAI (VANM)</option>
+                    <option value="VAAU" {% if last_station=='VAAU' %}selected{% endif %}>AURANGABAD (VAAU)</option>
+                    <option value="VASD" {% if last_station=='VASD' %}selected{% endif %}>SHIRDI (VASD)</option>
+                    <option value="VAJJ" {% if last_station=='VAJJ' %}selected{% endif %}>JUHU (VAJJ)</option>
+                    <option value="VAKP" {% if last_station=='VAKP' %}selected{% endif %}>KOLHAPUR (VAKP)</option>
+                    <option value="VOLT" {% if last_station=='VOLT' %}selected{% endif %}>LATUR (VOLT)</option>
+                    <option value="VOSR" {% if last_station=='VOSR' %}selected{% endif %}>SINDHUDURG (VOSR)</option>
+                    <option value="VOND" {% if last_station=='VOND' %}selected{% endif %}>NANDED (VOND)</option>
+                </select>
+
+                <button type="submit">Generate TAF</button>
+            </form>
+        </div>
+
+        {% if error %}
+        <div class="card error-box">
+            <h3>Error Encountered</h3>
+            <p>{{ error }}</p>
+        </div>
+        {% endif %}
+
+        {% if long_taf %}
+        <div class="card">
+            <div class="header-row">
+                <h2>Long TAF <span id="long-taf-edited" class="edited-badge">EDITED</span></h2>
+                <div class="action-group">
+                    <span class="action-link" onclick="enableEdit('long-taf')">edit</span>
+                    <span class="action-link" onclick="generatePDF('long-taf', 'Long_TAF')">.pdf</span>
+                    <span class="action-link" onclick="copyToClipboard('long-taf', this)">copy</span>
+                </div>
+            </div>
+            <div class="taf-box" id="long-taf">{{ long_taf }}</div>
+
+            <div class="header-row" style="margin-top: 20px;">
+                <h2>Short TAF <span id="short-taf-edited" class="edited-badge">EDITED</span></h2>
+                <div class="action-group">
+                    <span class="action-link" onclick="enableEdit('short-taf')">edit</span>
+                    <span class="action-link" onclick="generatePDF('short-taf', 'Short_TAF')">.pdf</span>
+                    <span class="action-link" onclick="copyToClipboard('short-taf', this)">copy</span>
+                </div>
+            </div>
+            <div class="taf-box" id="short-taf">{{ short_taf }}</div>
+        </div>
+        {% endif %}
+
+        <script>
+            function copyToClipboard(elementId, btnElement) {
+                const text = document.getElementById(elementId).innerText;
+                navigator.clipboard.writeText(text).then(() => {
+                    const originalText = btnElement.innerText;
+                    btnElement.innerText = "copied!";
+                    setTimeout(() => {
+                        btnElement.innerText = originalText;
+                    }, 2000);
+                }).catch(err => {
+                    console.error('Failed to copy: ', err);
+                });
+            }
+
+            function enableEdit(elementId) {
+                const box = document.getElementById(elementId);
+                const isEditable = box.getAttribute('contenteditable') === 'true';
+
+                if (!isEditable) {
+                    // Enter Edit Mode
+                    box.setAttribute('contenteditable', 'true');
+                    box.focus();
+
+                    // Add listener to detect changes
+                    box.addEventListener('input', function () {
+                        const badgeStartId = elementId + '-edited';
+                        document.getElementById(badgeStartId).style.display = 'inline-block';
+                    }, { once: true });
+
+                } else {
+                    // Exit Edit Mode
+                    box.setAttribute('contenteditable', 'false');
+                }
+            }
+
+            function generatePDF(elementId, filenamePrefix) {
+                const { jsPDF } = window.jspdf;
+                const doc = new jsPDF();
+
+                const content = document.getElementById(elementId).innerText;
+                const station = document.getElementById('station').value || 'STATION';
+
+                // Extract Issue Time (DDHHMMZ)
+                const timeStr = content.match(/\d{6}Z/);
+                const timeSuffix = timeStr ? `_${timeStr[0]}` : '';
+
+                doc.setFont("monospace"); // Use monospace for TAF
+                doc.setFontSize(12);
+
+                const lines = doc.splitTextToSize(content, 180);
+
+                doc.text(lines, 10, 10);
+                doc.save(`${station}_${filenamePrefix}${timeSuffix}.pdf`);
+            }
+        </script>
+
+        {% if debug_forms %}
+        <div class="card">
+            <h2>🛠 Debug Info: Forms Found</h2>
+            <p>The scraper couldn't find the data table, but found these form forms. Copy this info to fix the scraper.
+            </p>
+            <div class="debug-section">
+                <pre>{{ debug_forms | tojson(indent=2) }}</pre>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+</body>
+
+</html>
