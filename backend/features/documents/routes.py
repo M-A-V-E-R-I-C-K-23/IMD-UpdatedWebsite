@@ -10,7 +10,8 @@ documents_bp = Blueprint('documents', __name__)
 # Map module types to folder names
 MODULE_FOLDERS = {
     'sop': 'sop',
-    'circulars': 'circulars'
+    'circulars': 'circulars',
+    'workshops': 'workshops'
 }
 
 def allowed_file(filename):

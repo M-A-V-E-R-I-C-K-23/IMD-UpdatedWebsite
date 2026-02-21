@@ -26,9 +26,12 @@
                 <li class="nav-item dropdown">
                     <a href="#" class="nav-link">Workshops & Training ▾</a>
                     <div class="dropdown-content simple-list">
-                        <a href="#" class="dropdown-item">Upcoming Events</a>
-                        <a href="#" class="dropdown-item">Past Workshops</a>
-                        <a href="#" class="dropdown-item">Conference Proceedings</a>
+                        <a href="{{ url_for('documents.list_documents', module_type='workshops', section='upcoming_events') }}"
+                            class="dropdown-item">Upcoming Events</a>
+                        <a href="{{ url_for('documents.list_documents', module_type='workshops', section='past_workshops') }}"
+                            class="dropdown-item">Past Workshops</a>
+                        <a href="{{ url_for('documents.list_documents', module_type='workshops', section='conference_proceedings') }}"
+                            class="dropdown-item">Conference Proceedings</a>
                     </div>
                 </li>
 
@@ -74,7 +77,8 @@
         <a href="{{ url_for('map.head_profile') }}" class="mobile-link">Head</a>
         <a href="{{ url_for('map.employee_list') }}" class="mobile-link">Employees</a>
         <a href="#" class="mobile-link">Services</a>
-        <a href="#" class="mobile-link">Workshops</a>
+        <a href="{{ url_for('documents.list_documents', module_type='workshops', section='upcoming_events') }}"
+            class="mobile-link">Workshops</a>
         {% if session.get('user') %}
         <a href="{{ url_for('map.logout') }}" class="mobile-link admin-mobile-link">Logout ({{ session.user }})</a>
         {% else %}
