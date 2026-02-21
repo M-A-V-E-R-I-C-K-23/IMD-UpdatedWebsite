@@ -741,6 +741,21 @@ def delete_admin_upload(upload_id):
     finally:
         conn.close()
 
+def delete_admin_upload_by_path(file_path):
+    """
+    Delete upload from DB using its relative file_path.
+    """
+    conn = get_db_connection()
+    try:
+        conn.execute('DELETE FROM admin_uploads WHERE file_path = ?', (file_path,))
+        conn.commit()
+        return True
+    except Exception as e:
+        logger.error(f"Error deleting admin upload by path: {e}")
+        return False
+    finally:
+        conn.close()
+
 def cleanup_expired_uploads():
     """
     Finds expired uploads that are NOT yet deleted.

@@ -3,6 +3,7 @@ from flask import Blueprint, render_template, request, jsonify, session, send_fr
 from werkzeug.utils import secure_filename
 from core.config import UPLOAD_FOLDER, ALLOWED_EXTENSIONS, STATIONS
 from datetime import datetime
+from database.operations import track_admin_upload, delete_admin_upload_by_path
 
 documents_bp = Blueprint('documents', __name__)
 
@@ -88,6 +89,11 @@ def upload_document(module_type, section):
         save_name = f"{timestamp}_{filename}"
         
         file.save(os.path.join(target_dir, save_name))
+        
+        # Track upload in DB for "My Uploads"
+        relative_path = f"{folder_name}/{section}/{save_name}"
+        track_admin_upload(filename, module_type, relative_path, session.get('user'))
+        
         return jsonify({'success': True, 'message': 'File uploaded successfully'})
         
     except Exception as e:
@@ -118,6 +124,11 @@ def delete_document(module_type, section, filename):
         
         if os.path.exists(file_path):
             os.remove(file_path)
+            
+            # Also remove from DB so it disappears from "My Uploads" UI
+            relative_path = f"{folder_name}/{section}/{filename}"
+            delete_admin_upload_by_path(relative_path)
+            
             return jsonify({'success': True, 'message': 'File deleted'})
         return jsonify({'success': False, 'error': 'File not found'}), 404
         
