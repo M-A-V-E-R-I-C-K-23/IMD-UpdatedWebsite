@@ -304,3 +304,133 @@ footer p {
         text-align: center;
     }
 }
+
+/* ─── ⑧ Runway Wind Compass — fully scoped, no global leakage ─────────────── */
+
+#runwayCompassContainer {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: flex-start;
+    gap: 1.25rem;
+    padding: 0.5rem 0;
+    min-height: 260px;
+}
+
+/* Layout: 1 runway */
+#runwayCompassContainer.compass-single {
+    justify-content: center;
+}
+
+#runwayCompassContainer.compass-single .compass-wrapper {
+    width: min(240px, 90%);
+}
+
+/* Layout: 2 runways */
+#runwayCompassContainer.compass-dual {
+    justify-content: center;
+}
+
+#runwayCompassContainer.compass-dual .compass-wrapper {
+    width: min(200px, 44%);
+}
+
+/* Layout: 3+ runways */
+#runwayCompassContainer.compass-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1rem;
+}
+
+/* Per-runway card */
+#runwayCompassContainer .compass-wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background: #ffffff;
+    border: 1px solid #d0d9e8;
+    border-radius: 10px;
+    padding: 0.75rem 0.5rem 0.6rem;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.07);
+    transition: box-shadow 0.2s;
+}
+
+#runwayCompassContainer .compass-wrapper:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+}
+
+/* Runway caption above SVG */
+#runwayCompassContainer .compass-caption {
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: #1a2a4a;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 0.4rem;
+    text-align: center;
+}
+
+/* ⑥ Responsive SVG — scales to wrapper width */
+#runwayCompassContainer .compass-svg {
+    width: 100%;
+    height: auto;
+    display: block;
+}
+
+/* Data row beneath SVG */
+#runwayCompassContainer .compass-data {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    margin-top: 0.5rem;
+    font-size: 0.78rem;
+    font-family: 'Roboto', sans-serif;
+    text-align: center;
+    width: 100%;
+}
+
+/* Headwind / tailwind — blue */
+#runwayCompassContainer .compass-hw {
+    font-weight: 700;
+    color: #0056b3;
+}
+
+/* Crosswind — amber */
+#runwayCompassContainer .compass-xw {
+    font-weight: 700;
+    color: #e07b00;
+}
+
+/* Observed wind — muted */
+#runwayCompassContainer .compass-wind {
+    color: #555;
+    font-weight: 400;
+}
+
+/* ⑤ Fallback message for unlisted airports */
+#runwayCompassContainer .no-runway {
+    color: #888;
+    font-style: italic;
+    font-size: 0.9rem;
+    padding: 2rem 1rem;
+    text-align: center;
+    width: 100%;
+}
+
+/* Responsive: stack on small screens */
+@media (max-width: 600px) {
+    #runwayCompassContainer,
+    #runwayCompassContainer.compass-dual,
+    #runwayCompassContainer.compass-grid {
+        flex-direction: column;
+        display: flex;
+        align-items: center;
+    }
+
+    #runwayCompassContainer .compass-wrapper,
+    #runwayCompassContainer.compass-dual .compass-wrapper,
+    #runwayCompassContainer.compass-single .compass-wrapper {
+        width: min(260px, 90%);
+    }
+}

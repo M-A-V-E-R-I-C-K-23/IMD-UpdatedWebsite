@@ -3,112 +3,182 @@ document.addEventListener('DOMContentLoaded', function () {
     const selectedStation = window.SELECTED_STATION;
     const refreshBtn = document.getElementById('refreshBtn');
 
-    // Runway configuration (Heading 1 / Heading 2)
-    const RUNWAY_INFO = {
-        "VABB": { rwy1: 27, rwy2: 9, label: "27/09" },
-        "VAAH": { rwy1: 23, rwy2: 5, label: "23/05" },
-        "VANP": { rwy1: 32, rwy2: 14, label: "32/14" },
-        "VABO": { rwy1: 22, rwy2: 4, label: "22/04" },
-        "VAID": { rwy1: 25, rwy2: 7, label: "25/07" },
-        "VABP": { rwy1: 30, rwy2: 12, label: "30/12" },
-        "VAGO": { rwy1: 26, rwy2: 8, label: "26/08" },
-        "VAOZ": { rwy1: 26, rwy2: 8, label: "26/08" }, // Approx
-        "VAAU": { rwy1: 27, rwy2: 9, label: "27/09" }, // Approx
-        "VAKP": { rwy1: 28, rwy2: 10, label: "28/10" },
-        "VASN": { rwy1: 28, rwy2: 10, label: "28/10" }, // Approx
-        "VASU": { rwy1: 4, rwy2: 22, label: "04/22" },
-        "VAJJ": { rwy1: 26, rwy2: 8, label: "26/08" }
+    // ── Runway Wind Compass ─────────────────────────────────────────────────
+
+    const RUNWAY_DATA = {
+        "VABB": [{ name: "09/27", heading: 90  }, { name: "14/32", heading: 140 }],  // Mumbai
+        "VASD": [{ name: "09/27", heading: 90  }],  // Shirdi
+        "VAJJ": [{ name: "08/26", heading: 80  }],  // Juhu
+        "VAJL": [{ name: "08/26", heading: 80  }],  // Jalgaon
+        "VAAU": [{ name: "09/27", heading: 90  }],  // Aurangabad
+        "VOND": [{ name: "09/27", heading: 90  }],  // Nanded
+        "VAKP": [{ name: "08/26", heading: 80  }],  // Kolhapur
+        "VOSR": [{ name: "04/22", heading: 40  }],  // Sindhudurg
+        "VASL": [{ name: "08/26", heading: 80  }],  // Solapur
+        "VOLT": [{ name: "09/27", heading: 90  }],  // Latur
+        "VOGA": [{ name: "09/27", heading: 90  }],  // Mopa (Goa)
+        "VANM": [{ name: "08/26", heading: 80  }]   // Navi Mumbai
     };
 
-    function drawRunwayDial(windDir, windSpeed) {
-        const config = RUNWAY_INFO[selectedStation] || { rwy1: 27, rwy2: 9, label: "27/09" };
-        const runwayHeading = config.rwy1 * 10;
+    /**
+     * Build one SVG compass element for a single runway.
+     * Wind arrow points FROM the wind's origin (aviation standard).
+     * All SVG rotations use explicit center pivot (cx, cy) to prevent drift.
+     *
+     * @param {object} runway      - { name: string, heading: number° }
+     * @param {number} windDir     - observed wind direction in degrees (0-359)
+     * @param {number} windSpeed   - observed wind speed in knots
+     * @returns {HTMLElement}      - .compass-wrapper div containing SVG + data row
+     */
+    function createCompass(runway, windDir, windSpeed) {
+        const cx = 100, cy = 100, R = 85;
+        const runwayHeading = runway.heading;
 
-        // Calculate components
-        const radd = (windDir - runwayHeading) * Math.PI / 180;
-        const headwind = (windSpeed * Math.cos(radd)).toFixed(1);
-        const crosswind = (windSpeed * Math.sin(radd)).toFixed(1);
+        // ① Angle normalization — prevents 0°/360° boundary bugs
+        const relativeAngle = (windDir - runwayHeading + 360) % 360;
+        const angleRad = relativeAngle * Math.PI / 180;
+        const headwind  = windSpeed * Math.cos(angleRad);
+        const crosswind = windSpeed * Math.sin(angleRad);
 
-        const data = [
-            // Wind Vector Arrow
-            {
-                type: 'scatterpolar',
-                r: [0, windSpeed],
-                theta: [0, windDir],
-                mode: 'lines+markers',
-                line: { color: 'red', width: 4 },
-                marker: { symbol: 'arrow-bar-up', size: 15, color: 'red' },
-                name: 'Wind'
-            },
-            // Runway Strip
-            {
-                type: 'scatterpolar',
-                r: [30, 30], // Length of runway visual
-                theta: [runwayHeading, runwayHeading + 180],
-                mode: 'lines',
-                line: { color: 'black', width: 20 },
-                name: 'Runway',
-                hoverinfo: 'none'
-            }
+        // ④ Crosswind direction label
+        const crossDir = crosswind >= 0 ? 'Right' : 'Left';
+        const headLabel = headwind >= 0
+            ? `HW: ${Math.abs(headwind).toFixed(1)}kt`
+            : `TW: ${Math.abs(headwind).toFixed(1)}kt`;
+        const crossLabel = `XW: ${Math.abs(crosswind).toFixed(1)}kt (${crossDir})`;
+
+        // Runway strip endpoints (±half-length along heading, rotated to heading)
+        // ③ Center-pivot rotation: rotate(angle, cx, cy)
+        const rLen = 60;
+
+        // Tick marks for compass bezel
+        let ticks = '';
+        for (let i = 0; i < 36; i++) {
+            const isMajor = i % 9 === 0;
+            const tickLen = isMajor ? 10 : 5;
+            const angle = i * 10 * Math.PI / 180;
+            const x1 = cx + R * Math.sin(angle);
+            const y1 = cy - R * Math.cos(angle);
+            const x2 = cx + (R - tickLen) * Math.sin(angle);
+            const y2 = cy - (R - tickLen) * Math.cos(angle);
+            ticks += `<line x1="${x1.toFixed(1)}" y1="${y1.toFixed(1)}" x2="${x2.toFixed(1)}" y2="${y2.toFixed(1)}" stroke="#1a2a4a" stroke-width="${isMajor ? 2 : 1}"/>`;
+        }
+
+        // Cardinal labels
+        const cardinals = [
+            { label: 'N', dx: 0,    dy: -68 },
+            { label: 'E', dx: 68,   dy: 0   },
+            { label: 'S', dx: 0,    dy: 72  },
+            { label: 'W', dx: -72,  dy: 0   }
         ];
+        const cardinalSvg = cardinals.map(c =>
+            `<text x="${cx + c.dx}" y="${cy + c.dy}" text-anchor="middle" dominant-baseline="middle"
+                   font-size="11" font-weight="700" fill="#1a2a4a" font-family="Roboto,sans-serif">${c.label}</text>`
+        ).join('');
 
-        const layout = {
-            polar: {
-                radialaxis: { visible: true, range: [0, Math.max(40, windSpeed + 10)] },
-                angularaxis: {
-                    direction: "clockwise",
-                    rotation: 90,
-                    tickmode: "array",
-                    tickvals: [0, 90, 180, 270],
-                    ticktext: ["N", "E", "S", "W"]
-                }
-            },
-            showlegend: false,
-            title: {
-                text: `Runway ${config.label}<br><span style="font-size:0.8em; color:blue">Head/Tail: ${headwind}kt | Cross: ${Math.abs(crosswind)}kt</span>`,
-                font: { size: 14 }
-            },
-            margin: { t: 40, b: 30, l: 40, r: 40 },
-            autosize: true
-        };
+        // ② Wind arrow: points FROM wind origin (aviation convention)
+        //    Arrow shaft + arrowhead, ③ rotated around center
+        const arrowLen = Math.min(70, 20 + windSpeed * 2.5);
+        const arrowSvg = windSpeed > 0 ? `
+            <g transform="rotate(${windDir}, ${cx}, ${cy})">
+                <line x1="${cx}" y1="${cy}" x2="${cx}" y2="${cy - arrowLen}"
+                      stroke="#e63946" stroke-width="2.5" stroke-linecap="round"/>
+                <polygon points="${cx},${cy - arrowLen - 2} ${cx - 6},${cy - arrowLen + 10} ${cx + 6},${cy - arrowLen + 10}"
+                         fill="#e63946"/>
+            </g>` : '';
 
-        Plotly.newPlot('runwayDial', data, layout, { displayModeBar: false, responsive: true });
+        // Runway strip: thick line rotated to runway heading, ③ center pivot
+        // Runway number labels at both ends
+        const rwyParts = runway.name.split('/');
+        const rwy1Label = rwyParts[0] || '';
+        const rwy2Label = rwyParts[1] || '';
+        const runwaySvg = `
+            <g transform="rotate(${runwayHeading}, ${cx}, ${cy})">
+                <line x1="${cx}" y1="${cy - rLen}" x2="${cx}" y2="${cy + rLen}"
+                      stroke="#5a5a5a" stroke-width="10" stroke-linecap="round"/>
+                <!-- threshold markings -->
+                <line x1="${cx - 5}" y1="${cy - rLen + 4}" x2="${cx + 5}" y2="${cy - rLen + 4}"
+                      stroke="white" stroke-width="1.5"/>
+                <line x1="${cx - 5}" y1="${cy + rLen - 4}" x2="${cx + 5}" y2="${cy + rLen - 4}"
+                      stroke="white" stroke-width="1.5"/>
+                <text x="${cx}" y="${cy - rLen - 8}" text-anchor="middle" font-size="9"
+                      font-weight="700" fill="#1a2a4a" font-family="Roboto,sans-serif">${rwy1Label}</text>
+                <text x="${cx}" y="${cy + rLen + 14}" text-anchor="middle" font-size="9"
+                      font-weight="700" fill="#1a2a4a" font-family="Roboto,sans-serif">${rwy2Label}</text>
+            </g>`;
+
+        // Assemble SVG — ⑥ viewBox for fluid responsiveness
+        const svgHtml = `
+        <svg class="compass-svg" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+            <!-- Outer bezel -->
+            <circle cx="${cx}" cy="${cy}" r="${R}" fill="#f7f9fc" stroke="#1a2a4a" stroke-width="2"/>
+            <!-- Inner reference circle -->
+            <circle cx="${cx}" cy="${cy}" r="4" fill="#1a2a4a"/>
+            ${ticks}
+            ${cardinalSvg}
+            ${runwaySvg}
+            ${arrowSvg}
+        </svg>`;
+
+        // Data badges
+        const dataHtml = `
+        <div class="compass-data">
+            <span class="compass-hw">${headLabel}</span>
+            <span class="compass-xw">${crossLabel}</span>
+            <span class="compass-wind">Wind: ${windDir}° / ${windSpeed}kt</span>
+        </div>`;
+
+        const wrapper = document.createElement('div');
+        wrapper.className = 'compass-wrapper';
+        wrapper.innerHTML = `
+            <div class="compass-caption">RWY ${runway.name} &nbsp;|&nbsp; ${runwayHeading}°</div>
+            ${svgHtml}
+            ${dataHtml}`;
+        return wrapper;
     }
 
-    function drawSpeedDial(windSpeed) {
-        const data = [
-            {
-                type: "indicator",
-                mode: "gauge+number",
-                value: windSpeed,
-                title: { text: "Speed (kt)", font: { size: 14 } },
-                gauge: {
-                    axis: { range: [null, 60], tickwidth: 1, tickcolor: "darkblue" },
-                    bar: { color: "#0056b3" },
-                    bgcolor: "white",
-                    borderwidth: 2,
-                    bordercolor: "gray",
-                    steps: [
-                        { range: [0, 15], color: "#e3f2fd" },
-                        { range: [15, 30], color: "#bbdefb" },
-                        { range: [30, 60], color: "#90caf9" }
-                    ],
-                    threshold: {
-                        line: { color: "red", width: 4 },
-                        thickness: 0.75,
-                        value: 50
-                    }
-                }
-            }
-        ];
+    /**
+     * Render compass(es) for an airport into #runwayCompassContainer.
+     * ⑤ Graceful fallback for airports not in RUNWAY_DATA.
+     * ⑦ Clears container once, re-renders — no nested wrapper buildup.
+     *
+     * @param {string} airportCode
+     * @param {number} windDir
+     * @param {number} windSpeed
+     */
+    function renderRunwayCompasses(airportCode, windDir, windSpeed) {
+        const container = document.getElementById('runwayCompassContainer');
+        if (!container) return;
 
-        const layout = {
-            margin: { t: 30, b: 30, l: 30, r: 30 },
-            autosize: true
-        };
+        // ⑦ Single clear
+        container.innerHTML = '';
 
-        Plotly.newPlot('speedDial', data, layout, { displayModeBar: false, responsive: true });
+        // ⑤ Graceful fallback
+        if (!RUNWAY_DATA[airportCode]) {
+            container.innerHTML = "<div class='no-runway'>No runway data available for this station.</div>";
+            return;
+        }
+
+        const runways = RUNWAY_DATA[airportCode];
+
+        // Layout rules
+        if (runways.length === 1) {
+            container.classList.add('compass-single');
+            container.classList.remove('compass-dual', 'compass-grid');
+        } else if (runways.length === 2) {
+            container.classList.add('compass-dual');
+            container.classList.remove('compass-single', 'compass-grid');
+        } else {
+            container.classList.add('compass-grid');
+            container.classList.remove('compass-single', 'compass-dual');
+        }
+
+        runways.forEach(runway => {
+            container.appendChild(createCompass(runway, windDir, windSpeed));
+        });
     }
+
+
 
     const colors = [
         'rgb(0, 123, 255)',
@@ -128,10 +198,23 @@ document.addEventListener('DOMContentLoaded', function () {
             .then(data => {
                 updateCharts(data);
                 updateDataStatus(data);
+
+                // Try today's live data first
+                let lastObs = null;
                 if (data.today_live && data.today_live.data && data.today_live.data.length > 0) {
-                    const lastObs = data.today_live.data[data.today_live.data.length - 1];
-                    drawRunwayDial(lastObs.wind_direction, lastObs.wind_speed);
-                    drawSpeedDial(lastObs.wind_speed);
+                    lastObs = data.today_live.data[data.today_live.data.length - 1];
+                } else if (data.days && data.days.length > 0) {
+                    // Fallback: use most recent observation from historical days
+                    for (let i = data.days.length - 1; i >= 0; i--) {
+                        if (data.days[i].data && data.days[i].data.length > 0) {
+                            lastObs = data.days[i].data[data.days[i].data.length - 1];
+                            break;
+                        }
+                    }
+                }
+
+                if (lastObs) {
+                    renderRunwayCompasses(selectedStation, lastObs.wind_direction, lastObs.wind_speed);
                 }
             })
             .catch(error => console.error('Error fetching data:', error));
@@ -337,8 +420,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
         if (liveData.data && liveData.data.length > 0) {
             const lastObs = liveData.data[liveData.data.length - 1];
-            drawRunwayDial(lastObs.wind_direction, lastObs.wind_speed);
-            drawSpeedDial(lastObs.wind_speed);
+            renderRunwayCompasses(selectedStation, lastObs.wind_direction, lastObs.wind_speed);
         }
     }
 

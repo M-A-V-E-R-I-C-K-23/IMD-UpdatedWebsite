@@ -57,14 +57,11 @@
     </style>
 
     <main class="dashboard-grid">
-        <div class="chart-card">
+        <div class="chart-card" id="runwayCompassCard">
             <h3>Runway Wind Component</h3>
-            <div id="runwayDial" class="plotly-chart"></div>
+            <div id="runwayCompassContainer"></div>
         </div>
-        <div class="chart-card">
-            <h3>Wind Speed Indicator</h3>
-            <div id="speedDial" class="plotly-chart"></div>
-        </div>
+
 
         <div class="chart-card">
             <h3>Temperature (°C)</h3>
@@ -132,7 +129,7 @@
         checkWarnings();
         setInterval(checkWarnings, 60000);
     </script>
-    <script src="{{ url_for('static', filename='js/dashboard.js') }}?v=4"></script>
+    <script src="{{ url_for('static', filename='js/dashboard.js') }}?v=6"></script>
 </body>
 
 </html>
