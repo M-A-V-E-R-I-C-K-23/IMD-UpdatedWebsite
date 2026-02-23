@@ -14,6 +14,13 @@ MODULE_FOLDERS = {
     'workshops': 'workshops'
 }
 
+# Pre-create all expected subdirectories so uploads never fail on missing dirs
+_SECTIONS = ['aviation', 'general', 'admin', 'technical', 'operations']
+for _module, _folder in MODULE_FOLDERS.items():
+    for _section in _SECTIONS:
+        os.makedirs(os.path.join(UPLOAD_FOLDER, _folder, _section), exist_ok=True)
+
+
 def allowed_file(filename):
     return '.' in filename and \
            filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS

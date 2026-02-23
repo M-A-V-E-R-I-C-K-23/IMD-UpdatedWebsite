@@ -159,7 +159,14 @@
                     body: formData
                 });
 
-                const result = await response.json();
+                let result;
+                try {
+                    result = await response.json();
+                } catch (parseErr) {
+                    // Server returned a non-JSON response (e.g. raw 500 HTML page)
+                    alert('Upload failed. Server error (HTTP ' + response.status + '). Please check if you are still logged in and try again.');
+                    return;
+                }
 
                 if (result.success) {
                     location.reload();
@@ -168,7 +175,7 @@
                 }
             } catch (error) {
                 console.error('Error:', error);
-                alert('An error occurred during upload.');
+                alert('Upload failed: Could not reach server. Please check your connection.');
             } finally {
                 submitBtn.disabled = false;
                 submitBtn.textContent = 'Upload';

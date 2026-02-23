@@ -23,7 +23,6 @@ services:
     volumes:
       - ./frontend/static:/usr/share/nginx/html/static # Mount static files (CSS/JS)
       - ./frontend/nginx.conf:/etc/nginx/conf.d/default.conf # Mount config
-      - ./certs:/etc/nginx/certs # Mount SSL certificates
     depends_on:
       - backend
     restart: always
