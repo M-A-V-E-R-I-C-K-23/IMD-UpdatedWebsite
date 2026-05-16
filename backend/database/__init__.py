@@ -21,7 +21,7 @@ from .operations import (
     update_notam_status,
     update_notam_text,
     delete_notam,
-    get_public_active_notam,
+    get_public_active_notams,
     auto_expire_notams,
     
     create_aerodrome_warning, 

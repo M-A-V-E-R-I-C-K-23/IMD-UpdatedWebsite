@@ -358,30 +358,34 @@
                 {% endfor %}
                 {% endif %}
             </div>
+
+            <div class="info-card rvr-card" style="margin: 15px 0;">
+                <div class="card-header">
+                    LIVE RVR – MUMBAI
+                </div>
+                <div class="card-content rvr-content-compact" id="rvr-container"
+                    style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 15px; padding: 15px 0;">
+                    <p style="margin: 0; font-size: 0.95rem; color: #555;">Live RVR is hosted on CAMD portal</p>
+                    <a href="https://rvrcamd.imd.gov.in:5000/live-rvr" target="_blank" class="rvr-btn" style="
+                            padding: 8px 16px; 
+                            background-color: #0056b3; 
+                            color: white; 
+                            text-decoration: none; 
+                            border-radius: 4px;
+                            font-weight: 500;">
+                        Open Live RVR (CAMD) ↗
+                    </a>
+                </div>
+            </div>
         </aside>
     </div>
 
     <div class="bottom-info-container">
-        <div class="info-card rvr-card bottom-card">
-            <div class="card-header">
-                LIVE RVR – MUMBAI
-            </div>
-            <div class="card-content rvr-content-compact" id="rvr-container"
-                style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 15px;">
-                <p style="margin: 0; font-size: 0.95rem; color: #555;">Live RVR is hosted on CAMD portal</p>
-                <a href="https://rvrcamd.imd.gov.in:5000/live-rvr" target="_blank" class="rvr-btn" style="
-                        padding: 8px 16px; 
-                        background-color: #0056b3; 
-                        color: white; 
-                        text-decoration: none; 
-                        border-radius: 4px;
-                        font-weight: 500;">
-                    Open Live RVR (CAMD) ↗
-                </a>
-            </div>
-        </div>
         <div class="info-card bottom-card">
-            <div class="card-header">Latest METAR & TAF (VABB)</div>
+            <div class="card-header" style="display: flex; justify-content: space-between; align-items: center;">
+                <span>Latest METAR & TAF (VABB)</span>
+                <span id="metarRefreshTimer" style="font-size: 0.8rem; font-weight: normal; color: #ccc;"></span>
+            </div>
             <div class="card-content" id="latestDataContent">
                 <div class="loading-text">Loading latest data...</div>
             </div>
@@ -406,42 +410,43 @@
             const container = document.getElementById('latestDataContent');
             if (!container) return;
 
-            fetch(`/api/latest/${STATION_CODE}`)
+            fetch(`/tafor/api/taf/${STATION_CODE}`)
                 .then(res => res.json())
-                .then(data => {
-                    if (data.error) {
-                        container.innerHTML = `<div class="error-text">Error: ${data.error}</div>`;
-                        return;
-                    }
+                .then(tafData => {
+                    let html = '';
 
-                    const obs = data.data;
+                    const obs = tafData.ogimet_metar;
                     if (!obs) {
-                        container.innerHTML = `<div class="error-text">No data available</div>`;
-                        return;
+                        html += `<div class="error-text">Ogimet METAR Error: No data available</div>`;
+                    } else {
+                        const obsTime = new Date(obs.timestamp_utc);
+                        const timeStr = obsTime.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', timeZone: 'UTC' }) + ' UTC';
+                        const dateStr = obsTime.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', timeZone: 'UTC' });
+
+                        html += `
+                        <div style="font-size: 0.9rem; margin-bottom: 8px;">
+                            <div class="data-row">Time: <strong>${timeStr}</strong> <span style="font-size:0.8em; color:#666;">(${dateStr})</span></div>
+                            <div class="data-row">Wind: <strong>${obs.wind_direction}° / ${obs.wind_speed}kt</strong></div>
+                            <div class="data-row">Vis: <strong>${obs.visibility}m</strong> | Temp: <strong>${obs.temperature}°C</strong></div>
+                        </div>
+                        `;
+
+                        if (obs.raw_metar) {
+                            html += `<div class="metar-box" style="margin-bottom:8px;"><strong>METAR:</strong><br>${obs.raw_metar}</div>`;
+                        }
                     }
 
-                    const obsTime = new Date(obs.timestamp_utc);
-                    const timeStr = obsTime.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', timeZone: 'UTC' }) + ' UTC';
-
-                    const dateStr = obsTime.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', timeZone: 'UTC' });
-
-                    let html = `
-                    <div style="font-size: 0.9rem; margin-bottom: 8px;">
-                        <div class="data-row">Time: <strong>${timeStr}</strong> <span style="font-size:0.8em; color:#666;">(${dateStr})</span></div>
-                        <div class="data-row">Wind: <strong>${obs.wind_direction}° / ${obs.wind_speed}kt</strong></div>
-                        <div class="data-row">Vis: <strong>${obs.visibility}m</strong> | Temp: <strong>${obs.temperature}°C</strong></div>
-                    </div>
-                    `;
-
-                    if (obs.raw_metar) {
-                        html += `<div class="metar-box">${obs.raw_metar}</div>`;
+                    if (tafData.short_taf) {
+                        html += `<div class="metar-box"><strong>TAF:</strong><br>${tafData.short_taf}</div>`;
+                    } else if (tafData.error) {
+                        html += `<div class="error-text">TAF Error: ${tafData.error}</div>`;
                     }
 
                     container.innerHTML = html;
                 })
                 .catch(err => {
-                    console.error("METAR Fetch Error:", err);
-                    container.innerHTML = `<div class="error-text">Failed to load data</div>`;
+                    console.error("Fetch Error:", err);
+                    container.innerHTML = `<div class="error-text">Fetch Failed: ${err}</div>`;
                 });
         }
 
@@ -487,10 +492,35 @@
                 });
         }
 
+        let metarNextRefresh = null;
+        let metarTimerInterval = null;
+
+        function updateMetarTimer() {
+            const timerEl = document.getElementById('metarRefreshTimer');
+            if (!timerEl || !metarNextRefresh) return;
+            
+            const now = new Date();
+            const diff = metarNextRefresh - now;
+            
+            if (diff <= 0) {
+                timerEl.textContent = "Refreshing...";
+                metarNextRefresh = new Date(Date.now() + 1200000);
+                fetchLatestMetar();
+            } else {
+                const minutes = Math.floor(diff / 60000);
+                const seconds = Math.floor((diff % 60000) / 1000);
+                timerEl.textContent = `Next refresh in ${minutes}m ${seconds}s`;
+            }
+        }
+
         document.addEventListener('DOMContentLoaded', () => {
             fetchLatestMetar();
+            metarNextRefresh = new Date(Date.now() + 1200000);
+            if (metarTimerInterval) clearInterval(metarTimerInterval);
+            metarTimerInterval = setInterval(updateMetarTimer, 1000);
+            updateMetarTimer();
+
             fetchSigmetStatus();
-            setInterval(fetchLatestMetar, 300000);
             setInterval(fetchSigmetStatus, 300000);
         });
     </script>

@@ -389,6 +389,20 @@ window.D3MapCore = (function () {
                 .datum(FIR_DATA.mumbai)
                 .attr("d", geoPath)
                 .attr("class", "fir-boundary fir-mumbai");
+
+            // Add MUMBAI FIR label inside the FIR boundary (written in black bold)
+            const labelCoords = mainProjection([68, 15]); // Approx position of MUMBAI FIR label
+            if (labelCoords) {
+                target.append("text")
+                    .attr("x", labelCoords[0])
+                    .attr("y", labelCoords[1])
+                    .attr("class", "fir-label")
+                    .style("fill", "#000") // Black fill
+                    .style("font-size", "14px")
+                    .style("font-weight", "bold")
+                    .style("text-anchor", "middle")
+                    .text("MUMBAI FIR");
+            }
         }
 
         const graticule = d3.geoGraticule().step([5, 5]);

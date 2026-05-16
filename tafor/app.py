@@ -1,14 +1,45 @@
-from flask import Flask, render_template, request, redirect, url_for, flash
+from flask import Flask, render_template, request, redirect, url_for, flash, jsonify
 import os
 from scraper import IMDScraper, OgimetScraper
 from taf_generator import TafGenerator
+from metar_parser import decode_metar
 from cleanup import run_automated_cleanup
 import threading
-from werkzeug.middleware.proxy_fix import ProxyFix
 
 app = Flask(__name__)
-app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1, x_prefix=1)
 app.secret_key = 'super_secret_taf_key'  
+
+@app.route('/api/taf/<station>', methods=['GET'])
+def get_taf(station):
+    station = station.upper()
+    imd_scraper = IMDScraper()
+    ogimet_scraper = OgimetScraper()
+    generator = TafGenerator()
+
+    imd_data = imd_scraper.fetch_data(station)
+    ogimet_data = ogimet_scraper.fetch_data(station)
+
+    if "error" in imd_data:
+        return jsonify({"error": f"IMD Error: {imd_data['error']}"}), 500
+    if "error" in ogimet_data:
+        return jsonify({"error": f"Ogimet Error: {ogimet_data['error']}"}), 500
+
+    try:
+        short_taf = generator.generate_short_taf(imd_data, ogimet_data)
+        
+        parsed_metar = None
+        if "raw_metar" in ogimet_data and "dt" in ogimet_data:
+            parsed_metar = decode_metar(ogimet_data["raw_metar"], station, ogimet_data["dt"])
+            if parsed_metar and "timestamp_utc" in parsed_metar:
+                parsed_metar["timestamp_utc"] = parsed_metar["timestamp_utc"].isoformat() + "Z"
+
+        return jsonify({
+            "short_taf": short_taf, 
+            "station": station,
+            "ogimet_metar": parsed_metar
+        })
+    except Exception as e:
+        return jsonify({"error": f"Generation Error: {str(e)}"}), 500
 
 @app.route('/', methods=['GET'])
 def index():
@@ -60,5 +91,5 @@ def generate():
                          last_station=station)
 
 if __name__ == '__main__':
-    port = int(os.environ.get('PORT', 5000))
-    app.run(host='0.0.0.0', port=port)
+                                                                 
+    app.run(debug=True, port=5000)

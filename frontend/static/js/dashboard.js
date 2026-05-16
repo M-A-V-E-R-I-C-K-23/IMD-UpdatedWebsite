@@ -76,14 +76,14 @@ document.addEventListener('DOMContentLoaded', function () {
                    font-size="11" font-weight="700" fill="#1a2a4a" font-family="Roboto,sans-serif">${c.label}</text>`
         ).join('');
 
-        // ② Wind arrow: points FROM wind origin (aviation convention)
-        //    Arrow shaft + arrowhead, ③ rotated around center
+        // ② Wind arrow: points FROM wind origin TOWARDS center (aviation convention)
+        //    Arrow shaft starts at perimeter and points to the center
         const arrowLen = Math.min(70, 20 + windSpeed * 2.5);
         const arrowSvg = windSpeed > 0 ? `
             <g transform="rotate(${windDir}, ${cx}, ${cy})">
-                <line x1="${cx}" y1="${cy}" x2="${cx}" y2="${cy - arrowLen}"
+                <line x1="${cx}" y1="${cy - arrowLen}" x2="${cx}" y2="${cy - 8}"
                       stroke="#e63946" stroke-width="2.5" stroke-linecap="round"/>
-                <polygon points="${cx},${cy - arrowLen - 2} ${cx - 6},${cy - arrowLen + 10} ${cx + 6},${cy - arrowLen + 10}"
+                <polygon points="${cx},${cy + 2} ${cx - 6},${cy - 10} ${cx + 6},${cy - 10}"
                          fill="#e63946"/>
             </g>` : '';
 

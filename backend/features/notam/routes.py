@@ -5,7 +5,7 @@ from datetime import datetime
 from core.extensions import logger
 from core.config import UPLOAD_FOLDER
 from database import (create_notam_draft, update_notam_status, update_notam_text, 
-                     delete_notam, get_notams_by_status, get_public_active_notam)
+                     delete_notam, get_notams_by_status, get_public_active_notams)
 from database import track_admin_upload
 from .parser import parse_notam_pdf
 
@@ -77,11 +77,12 @@ def list_notams():
 
 @notam_bp.route('/api/notam/active')
 def get_public_notam():
-    notam = get_public_active_notam()
-    if notam:
+    notams = get_public_active_notams()
+    if notams:
+        combined_text = " ★ ".join([n['final_notam_text'] for n in notams if n.get('final_notam_text')])
         return jsonify({
             'active': True,
-            'text': notam['final_notam_text']
+            'text': combined_text
         })
     return jsonify({'active': False})
 

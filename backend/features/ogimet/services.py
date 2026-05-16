@@ -19,9 +19,11 @@ def fetch_metar_data():
 
 def fetch_station_data(icao, hours=None, start_dt=None, end_dt=None):
     url = "https://aviationweather.gov/api/data/metar"
+    
+    query_icao = "VABB" if icao == "VANM" else icao
+    
     params = {
-        'ids': icao,
-        'format': 'raw',
+        'ids': query_icao,
         'format': 'raw',
     }
     
@@ -53,7 +55,7 @@ def fetch_station_data(icao, hours=None, start_dt=None, end_dt=None):
     for line in lines:
         line = line.strip()
         if not line or not line.startswith('METAR') and not line.startswith('SPECI'):
-            if not line.startswith(icao):
+            if not line.startswith(query_icao):
                 continue
         
         raw_metar = line

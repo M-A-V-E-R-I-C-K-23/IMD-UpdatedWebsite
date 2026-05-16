@@ -176,7 +176,7 @@
         <div class="card">
             <h1>TAF Generator Tool</h1>
 
-            <form action="{{ url_for('generate') }}" method="POST">
+            <form action="generate" method="POST">
 
 
                 <label for="station">Select Station</label>
@@ -188,7 +188,7 @@
                     <option value="VASD" {% if last_station=='VASD' %}selected{% endif %}>SHIRDI (VASD)</option>
                     <option value="VAJJ" {% if last_station=='VAJJ' %}selected{% endif %}>JUHU (VAJJ)</option>
                     <option value="VAKP" {% if last_station=='VAKP' %}selected{% endif %}>KOLHAPUR (VAKP)</option>
-                    <option value="VOLT" {% if last_station=='VOLT' %}selected{% endif %}>LATUR (VOLT)</option>
+                    <option value="VOGA" {% if last_station=='VOGA' %}selected{% endif %}>GOA (VOGA)</option>
                     <option value="VOSR" {% if last_station=='VOSR' %}selected{% endif %}>SINDHUDURG (VOSR)</option>
                     <option value="VOND" {% if last_station=='VOND' %}selected{% endif %}>NANDED (VOND)</option>
                 </select>
@@ -210,7 +210,7 @@
                 <h2>Long TAF <span id="long-taf-edited" class="edited-badge">EDITED</span></h2>
                 <div class="action-group">
                     <span class="action-link" onclick="enableEdit('long-taf')">edit</span>
-                    <span class="action-link" onclick="generatePDF('long-taf', 'Long_TAF')">.pdf</span>
+                    <span class="action-link" onclick="generateCombinedPDF()">.pdf</span>
                     <span class="action-link" onclick="copyToClipboard('long-taf', this)">copy</span>
                 </div>
             </div>
@@ -220,7 +220,6 @@
                 <h2>Short TAF <span id="short-taf-edited" class="edited-badge">EDITED</span></h2>
                 <div class="action-group">
                     <span class="action-link" onclick="enableEdit('short-taf')">edit</span>
-                    <span class="action-link" onclick="generatePDF('short-taf', 'Short_TAF')">.pdf</span>
                     <span class="action-link" onclick="copyToClipboard('short-taf', this)">copy</span>
                 </div>
             </div>
@@ -232,7 +231,7 @@
             function copyToClipboard(elementId, btnElement) {
                 const tafBox = document.getElementById(elementId);
                 let text = '';
-
+                
                 // Get text, preserving line breaks. innerText is usually good, 
                 // but textContent is safer if there are hidden elements.
                 // Since it's a pre-wrap div or contenteditable, innerText is preferred.
@@ -256,7 +255,7 @@
                         console.error('Modern Clipboard API failed: ', err);
                         fallbackCopyTextToClipboard(text, successCallback);
                     });
-                }
+                } 
                 // Fallback for HTTP
                 else {
                     fallbackCopyTextToClipboard(text, successCallback);
@@ -265,7 +264,7 @@
 
             function fallbackCopyTextToClipboard(text, successCallback) {
                 const textArea = document.createElement("textarea");
-
+                
                 // Place in top-left corner of screen regardless of scroll position.
                 textArea.style.position = 'fixed';
                 textArea.style.top = 0;
@@ -301,7 +300,7 @@
                 }
 
                 document.body.removeChild(textArea);
-
+                
                 if (successful) {
                     successCallback();
                 } else {
@@ -331,24 +330,26 @@
                 }
             }
 
-            function generatePDF(elementId, filenamePrefix) {
+            function generateCombinedPDF() {
                 const { jsPDF } = window.jspdf;
                 const doc = new jsPDF();
 
-                const content = document.getElementById(elementId).innerText;
+                const longContent = document.getElementById('long-taf').innerText;
+                const shortContent = document.getElementById('short-taf').innerText;
                 const station = document.getElementById('station').value || 'STATION';
 
                 // Extract Issue Time (DDHHMMZ)
-                const timeStr = content.match(/\d{6}Z/);
+                const timeStr = longContent.match(/\d{6}Z/);
                 const timeSuffix = timeStr ? `_${timeStr[0]}` : '';
 
                 doc.setFont("monospace"); // Use monospace for TAF
                 doc.setFontSize(12);
 
-                const lines = doc.splitTextToSize(content, 180);
+                const combinedContent = "Long TAF:\n" + longContent + "\n\nShort TAF:\n" + shortContent;
+                const lines = doc.splitTextToSize(combinedContent, 180);
 
                 doc.text(lines, 10, 10);
-                doc.save(`${station}_${filenamePrefix}${timeSuffix}.pdf`);
+                doc.save(`${station}_Combined_TAF${timeSuffix}.pdf`);
             }
         </script>
 

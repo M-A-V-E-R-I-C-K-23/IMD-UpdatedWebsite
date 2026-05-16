@@ -472,8 +472,8 @@ def delete_notam(notam_id):
     finally:
         conn.close()
         
-def get_public_active_notam():
-    """Get the latest VALID, ACTIVE NOTAM."""
+def get_public_active_notams():
+    """Get all VALID, ACTIVE NOTAMs."""
     conn = get_db_connection()
     try:
 
@@ -484,13 +484,12 @@ def get_public_active_notam():
             WHERE status = 'ACTIVE' 
             AND valid_till_utc > ? 
             ORDER BY created_at DESC 
-            LIMIT 1
         ''', (now,))
-        row = cursor.fetchone()
-        return dict(row) if row else None
+        rows = cursor.fetchall()
+        return [dict(row) for row in rows]
     except Exception as e:
-        logger.error(f"Error getting public NOTAM: {e}")
-        return None
+        logger.error(f"Error getting public NOTAMs: {e}")
+        return []
     finally:
         conn.close()
 
