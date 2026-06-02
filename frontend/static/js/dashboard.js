@@ -263,13 +263,13 @@ document.addEventListener('DOMContentLoaded', function () {
         chartConfigs.forEach(config => {
             const traces = [];
 
-            data.days.forEach((dayData, index) => {
-                addTrace(dayData, index, false);
-            });
-
             if (data.today_live) {
                 addTrace(data.today_live, 3, true);
             }
+
+            data.days.forEach((dayData, index) => {
+                addTrace(dayData, index, false);
+            });
 
             function addTrace(dayData, index, isLive) {
                 const xValues = dayData.data.map(obs => `2000-01-01 ${obs.time}`);

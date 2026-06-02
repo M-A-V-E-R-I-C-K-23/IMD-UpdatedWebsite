@@ -17,6 +17,31 @@ def fetch_metar_data():
 
     logger.info("Data fetch completed.")
 
+def resolve_observation_time(day, hour, minute, reference_time):
+    candidates = []
+    for month_offset in (-1, 0, 1):
+        month = reference_time.month + month_offset
+        year = reference_time.year
+
+        if month == 0:
+            month = 12
+            year -= 1
+        elif month == 13:
+            month = 1
+            year += 1
+
+        try:
+            candidates.append(datetime(year, month, day, hour, minute))
+        except ValueError:
+            continue
+
+    valid_candidates = [
+        candidate for candidate in candidates
+        if candidate <= reference_time + timedelta(days=1)
+    ]
+
+    return max(valid_candidates) if valid_candidates else None
+
 def fetch_station_data(icao, hours=None, start_dt=None, end_dt=None):
     url = "https://aviationweather.gov/api/data/metar"
     
@@ -68,15 +93,8 @@ def fetch_station_data(icao, hours=None, start_dt=None, end_dt=None):
         hour = int(ts_match.group(2))
         minute = int(ts_match.group(3))
         
-        now = datetime.utcnow()
-        try:
-            obs_time = datetime(now.year, now.month, day, hour, minute)
-            if obs_time > now + timedelta(days=1):
-                if now.month == 1:
-                    obs_time = datetime(now.year - 1, 12, day, hour, minute)
-                else:
-                    obs_time = datetime(now.year, now.month - 1, day, hour, minute)
-        except ValueError:
+        obs_time = resolve_observation_time(day, hour, minute, datetime.utcnow())
+        if not obs_time:
             continue
         
         decoded = decode_metar(raw_metar, icao, obs_time)

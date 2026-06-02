@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>IMD Maharashtra - Meteorological Monitoring</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/map.css') }}?v=7">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/map.css') }}?v=9">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/d3_map.css') }}?v=5">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/notam_styles.css') }}?v=5">
 
@@ -359,20 +359,13 @@
                 {% endif %}
             </div>
 
-            <div class="info-card rvr-card" style="margin: 15px 0;">
+            <div class="info-card rvr-card">
                 <div class="card-header">
                     LIVE RVR – MUMBAI
                 </div>
-                <div class="card-content rvr-content-compact" id="rvr-container"
-                    style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 15px; padding: 15px 0;">
+                <div class="card-content rvr-content-compact" id="rvr-container">
                     <p style="margin: 0; font-size: 0.95rem; color: #555;">Live RVR is hosted on CAMD portal</p>
-                    <a href="https://rvrcamd.imd.gov.in:5000/live-rvr" target="_blank" class="rvr-btn" style="
-                            padding: 8px 16px; 
-                            background-color: #0056b3; 
-                            color: white; 
-                            text-decoration: none; 
-                            border-radius: 4px;
-                            font-weight: 500;">
+                    <a href="https://rvrcamd.imd.gov.in:5000/live-rvr" target="_blank" class="rvr-btn">
                         Open Live RVR (CAMD) ↗
                     </a>
                 </div>
@@ -381,7 +374,7 @@
     </div>
 
     <div class="bottom-info-container">
-        <div class="info-card bottom-card">
+        <div class="info-card bottom-card metar-bottom-card">
             <div class="card-header" style="display: flex; justify-content: space-between; align-items: center;">
                 <span>Latest METAR & TAF (VABB)</span>
                 <span id="metarRefreshTimer" style="font-size: 0.8rem; font-weight: normal; color: #ccc;"></span>
@@ -390,13 +383,21 @@
                 <div class="loading-text">Loading latest data...</div>
             </div>
         </div>
-        <div class="info-card bottom-card" id="sigmet-card">
+        <div class="info-card bottom-card sigmet-bottom-card" id="sigmet-card">
             <div class="card-header">
                 SIGMET – Mumbai FIR
             </div>
             <div class="card-content" id="sigmetContent"
                 style="display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; gap: 10px;">
                 <div class="loading-text">Loading SIGMET status...</div>
+            </div>
+        </div>
+        <div class="info-card bottom-card dwr-bottom-card">
+            <div class="card-header">
+                DWR Images - Mumbai
+            </div>
+            <div class="card-content dwr-content-compact" id="dwr-container">
+                <div class="rvr-status-text">Fetching DWR image links...</div>
             </div>
         </div>
     </div>
@@ -492,6 +493,50 @@
                 });
         }
 
+        function fetchDwrLinks() {
+            const container = document.getElementById('dwr-container');
+            if (!container) return;
+
+            fetch('/api/rvr/links')
+                .then(res => res.json())
+                .then(data => {
+                    const links = Array.isArray(data.links) ? data.links.slice(0, 3) : [];
+
+                    if (!links.length) {
+                        container.innerHTML = `
+                            <div class="rvr-status-text">DWR image links unavailable</div>
+                            <a href="${data.source || 'http://121.240.10.8:8081/DWR_PNG/'}" target="_blank" rel="noopener noreferrer" class="rvr-btn">
+                                Open DWR Images &rarr;
+                            </a>
+                        `;
+                        return;
+                    }
+
+                    const linkHtml = links.map((link, index) => {
+                        const label = link.label || `RVR Image ${index + 1}`;
+                        const preview = link.is_image ? `<img src="${link.url}" alt="${label}" loading="lazy">` : '';
+                        return `
+                            <a href="${link.url}" target="_blank" rel="noopener noreferrer" class="rvr-image-link">
+                                ${preview}
+                                <span>${label}</span>
+                            </a>
+                        `;
+                    }).join('');
+
+                    container.innerHTML = `<div class="rvr-link-grid">${linkHtml}</div>`;
+                })
+                .catch(err => {
+                    console.error("DWR Link Fetch Error:", err);
+                    container.innerHTML = `
+                        <div class="rvr-status-text">DWR image links unavailable</div>
+                        <a href="http://121.240.10.8:8081/DWR_PNG/" target="_blank" rel="noopener noreferrer" class="rvr-btn">
+                            Open DWR Images &rarr;
+                        </a>
+                    `;
+                });
+        }
+
+        const DWR_LINK_REFRESH_INTERVAL = 3 * 60 * 60 * 1000;
         let metarNextRefresh = null;
         let metarTimerInterval = null;
 
@@ -522,6 +567,9 @@
 
             fetchSigmetStatus();
             setInterval(fetchSigmetStatus, 300000);
+
+            fetchDwrLinks();
+            setInterval(fetchDwrLinks, DWR_LINK_REFRESH_INTERVAL);
         });
     </script>
 
