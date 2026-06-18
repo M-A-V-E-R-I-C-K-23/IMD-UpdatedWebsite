@@ -808,6 +808,22 @@
 
         async function publishNotam(id) {
             if (!confirm('Publish this NOTAM? It will go live immediately.')) return;
+
+            const textEl = document.getElementById(`edit-draft-${id}`);
+            const dateEl = document.getElementById(`edit-date-${id}`);
+            
+            if (textEl && dateEl) {
+                const text = textEl.value;
+                const validTill = dateEl.value;
+                const formattedDate = validTill.replace('T', ' ') + ':00';
+                
+                await fetch(`/api/notam/edit/${id}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ text, valid_till: formattedDate })
+                });
+            }
+
             await fetch(`/api/notam/publish/${id}`, { method: 'POST' });
             fetchNotamLists();
             fetchActiveNotam(); // Update public view
