@@ -156,10 +156,12 @@ def fetch_sigmet_data():
                 if match:
                     phenomenon = match.group(1).upper()
             
-            valid_from = first.get('validTimeFrom', '')
-            valid_to = first.get('validTimeTo', '')
+            valid_from = str(first.get('validTimeFrom', ''))
+            valid_to = str(first.get('validTimeTo', ''))
             
-            validity_text = f"{valid_from[11:16]} - {valid_to[11:16]} UTC" if valid_from and valid_to else "Active"
+            validity_text = "Active"
+            if len(valid_from) >= 16 and len(valid_to) >= 16:
+                validity_text = f"{valid_from[11:16]} - {valid_to[11:16]} UTC"
              
             status = {
                 "is_active": True,
