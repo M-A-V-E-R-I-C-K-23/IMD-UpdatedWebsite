@@ -9,6 +9,7 @@ services:
       - ./backend/uploads:/app/uploads
       - ./backend/met_data.db:/app/met_data.db
       - ./frontend/static/geojson:/frontend/static/geojson # Mount GeoJSON files for the map API
+      - ./tafor:/tafor
     environment:
       - FLASK_ENV=development # Enable Flask debug mode for auto-reload
       - FLASK_DEBUG=1
