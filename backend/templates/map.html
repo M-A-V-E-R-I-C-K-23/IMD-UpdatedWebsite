@@ -1338,6 +1338,58 @@
             }
         }
     </script>
+    <script>
+        // Flash card for News & Events and Notice Board
+        document.addEventListener('DOMContentLoaded', () => {
+            function setupFlashCards(containerSelector) {
+                const containers = document.querySelectorAll(containerSelector);
+                containers.forEach(container => {
+                    const items = Array.from(container.querySelectorAll('.sidebar-item'));
+                    if (items.length <= 1) return;
+                    
+                    container.style.overflow = 'hidden';
+                    
+                    let currentIndex = 0;
+                    let isHovered = false;
+                    
+                    items.forEach((item, index) => {
+                        item.style.transition = 'opacity 0.5s ease-in-out';
+                        if (index !== 0) {
+                            item.style.display = 'none';
+                            item.style.opacity = '0';
+                        } else {
+                            item.style.display = 'block';
+                            item.style.opacity = '1';
+                        }
+                    });
+                    
+                    container.addEventListener('mouseenter', () => isHovered = true);
+                    container.addEventListener('mouseleave', () => isHovered = false);
+                    
+                    function nextCard() {
+                        if (isHovered) return;
+                        
+                        const currentItem = items[currentIndex];
+                        currentItem.style.opacity = '0';
+                        setTimeout(() => {
+                            currentItem.style.display = 'none';
+                            currentIndex = (currentIndex + 1) % items.length;
+                            const nextItem = items[currentIndex];
+                            nextItem.style.display = 'block';
+                            setTimeout(() => {
+                                nextItem.style.opacity = '1';
+                            }, 50);
+                        }, 500);
+                    }
+                    
+                    setInterval(nextCard, 22000);
+                });
+            }
+
+            setupFlashCards('.news-sidebar-section .sidebar-content-scroll');
+            setupFlashCards('.notice-sidebar-section .sidebar-content-scroll');
+        });
+    </script>
 </body>
 
 </html>
